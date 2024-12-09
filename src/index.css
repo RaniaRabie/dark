@@ -1,0 +1,33 @@
+/*
+- File Name: index.css
+- Author: shrouk ahmed
+- Date of Creation: 17/9/2024
+- Versions Information: 1.0.0
+- Dependencies:none
+- Contributors: shrouk ahmed
+- Last Modified Date: 17/10/2024
+- Description : another global styling file with App.css
+*/
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen",
+    "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue",
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+code {
+  font-family: source-code-pro, Menlo, Monaco, Consolas, "Courier New",
+    monospace;
+}
+
+ul {
+  list-style: none;
+}
+li {
+  list-style: none;
+}
+a {
+  text-decoration: none;
+}

@@ -1,0 +1,116 @@
+/*
+- File Name: App.css
+- Author: shrouk ahmed
+- Date of Creation: 17/9/2024
+- Versions Information: 1.0.0
+- Dependencies:none
+- Contributors: shrouk ahmed , rania rabie,nourhan khaled
+- Last Modified Date: 1/11/2024
+- Description : global styling
+*/
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+  
+  body{
+    font-family: "Roboto", sans-serif;
+  }
+  .container {
+    display: flex;
+    /* position: fixed; */
+  }
+  
+  .main-container {
+    transition: margin-left 0.5s; /* Smooth transition for margin */
+    flex-grow: 1; /* Allow the main content to fill the remaining space */
+  
+    display: flex;
+  }
+  main {
+    padding: 10px;
+  }
+  .active {
+    background: #242c3a;
+  }
+  .title {
+    font-size: 3rem;
+    display: grid;
+    place-items: center;
+  }
+  
+  /* Sidebar */
+  .sidebar {
+    /* background: #1d242f; */
+    color: white;
+    overflow: hidden; /* To hide overflow */
+    position: fixed; /* Make the sidebar fixed */
+    top: 0; /* Align to the top */
+    left: 0; /* Align to the left */
+    height: 100vh; /* Full height */
+    overflow-y: auto; /* Allow scrolling if needed */
+    z-index: 2000; /* Ensure it's above other content */
+  }
+  
+  .top_section {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 15px 10px;
+  }
+  .logo {
+    font-size: 18px;
+    line-height: 0;
+  }
+  .bars {
+    width: 30px;
+  }
+  .hide {
+    display: none;
+  }
+  
+  .routes {
+    margin-top: 15px;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+  }
+  .link {
+    display: flex;
+    color: white;
+    gap: 10px;
+    padding: 5px 10px;
+    border-right: 4px solid transparent;
+    transition: 0.2s cubic-bezier(0.6, -0.28, 0.735, 0.045);
+  }
+  
+  .link_text {
+    white-space: nowrap;
+    font-size: 15px;
+  }
+  
+  .menu {
+    display: flex;
+    color: white;
+  
+    padding: 5px 10px;
+    border-right: 4px solid transparent;
+    transition: 0.2s cubic-bezier(0.6, -0.28, 0.735, 0.045);
+    justify-content: space-between;
+  }
+  .menu_item {
+    display: flex;
+    gap: 10px;
+  }
+  .menu_container {
+    display: flex;
+    flex-direction: column;
+  }
+  .menu_container .link {
+    padding-left: 20px;
+    border-bottom: #fff 0.5px solid;
+  }
+  
+  
+  

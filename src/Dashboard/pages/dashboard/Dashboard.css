@@ -1,0 +1,121 @@
+/*
+- File Name: Dashboard.css
+- Author: shrouk ahmed
+- Date of Creation: 17/9/2024
+- Versions Information: 1.0.0
+- Dependencies: none
+- Contributors: shrouk ahmed , rania rabie,nourhan khaled
+- Last Modified Date: 1/11/2024
+- Description : Dashboard Home styling
+*/
+
+.red-card h6,
+.red-card h4 {
+  color: white; /* Ensure the text inside the card is white */
+}
+
+.card {
+  width: 300px;
+  transition: transform 0.2s, box-shadow 0.2s;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+}
+
+.card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+}
+
+.chart-card {
+  background-color: #f9f9f9; /* Light background for charts */
+  border: 1px solid #e0e0e0;
+  border-radius: 12px;
+  padding: 20px;
+}
+
+.chart-card:hover {
+  border-color: #8884d8;
+}
+
+.card-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.card-content h6 {
+  color: #555;
+}
+
+.card-content h4 {
+  color: #333;
+  font-weight: bold;
+}
+
+.chart-title {
+  color: #8884d8; /* Color for chart titles */
+  margin-bottom: 10px;
+  text-align: center;
+}
+
+/* Specific styles for each chart */
+.line-chart {
+  background-color: #fff;
+  border-radius: 12px;
+  /* padding: 10px; */
+}
+
+.pie-chart {
+  background-color: #fff;
+  border-radius: 12px;
+  padding: 10px;
+}
+
+/* Bar chart styles */
+.rebar-chart {
+  background-color: #fff;
+  border-radius: 12px;
+}
+
+/* Responsive styles */
+@media (max-width: 1200px) {
+  .card {
+    width: 70%; /* Cards take up less space on medium screens */
+  }
+}
+@media (max-width: 1024px) {
+  .card {
+    width: 90%; /* Cards take up less space on medium screens */
+  }
+  .chart-card{
+    display: flex;
+    direction: row;
+
+  }
+}
+
+@media (max-width: 900px) {
+
+  .card {
+    width: 70%;
+    display: flex;
+    margin: auto;
+    align-items: center;
+    align-content: center; /* Full width for cards on smaller screens */
+  }
+
+  .main-container {
+    flex-direction: column; /* Stack items vertically */
+    padding: 0; /* Remove padding */
+  }
+}
+
+@media (max-width: 600px) {
+
+  .sidebar {
+    min-height: 2000px;
+    max-height: auto;
+  }
+
+  
+}

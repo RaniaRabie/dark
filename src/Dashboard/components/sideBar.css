@@ -1,0 +1,33 @@
+/*
+- File Name: sideBar.css
+- Author: shrouk ahmed
+- Date of Creation: 17/9/2024
+- Versions Information: 1.0.0
+- Dependencies:none
+- Contributors: shrouk ahmed , rania rabie , nourhan khaled
+- Last Modified Date: 1/11/2024
+- Description : sidebar styling
+*/
+/* Drawer animation */
+.MuiDrawer-paper {
+    transition: width 0s ease-in-out;
+
+  }
+
+  /* Submenu animation */
+  .submenu {
+  
+    overflow: hidden;
+    max-height: 0;
+    transition: max-height 0s ease-in-out;
+  }
+  
+  .submenu.expanded {
+    max-height: 135px; 
+  }
+  
+
+  .subitem-text {
+    font-size: 14px; 
+    color: rgb(70, 70, 70);     
+  }

@@ -1,0 +1,198 @@
+/*
+- File Name: CreateRoadmap.css
+- Author: rania rabie
+- Date of Creation: 17/9/2024
+- Versions Information: 1.0.0
+- Dependencies:none
+- Contributors:  rania rabie,nourhan khaled
+- Last Modified Date: 1/11/2024
+- Description : roadmap styling
+*/
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+.dndflow {
+  flex-direction: column;
+  display: flex;
+  flex-grow: 1;
+  height: 100%;
+}
+
+.dndflow aside {
+  border: 2px solid #eee;
+  padding: 15px 10px;
+  font-size: 12px;
+  background: #fcfcfc;
+}
+
+.dndflow aside .description {
+  margin-bottom: 10px;
+}
+
+.dndflow .dndnode {
+  height: 30px;
+  padding: 4px;
+  border: 1px solid #1a192b;
+  border-radius: 2px;
+  margin-bottom: 10px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: grab;
+  font-size: 16px;
+}
+
+.dndflow .dndnode.input {
+  border-color: #0041d0;
+}
+
+.dndflow .dndnode.output {
+  border-color: #ff0072;
+}
+
+.dndflow .reactflow-wrapper {
+  flex-grow: 1;
+  height: 100%;
+}
+
+.dndflow .selectall {
+  margin-top: 10px;
+}
+
+@media screen and (min-width: 768px) {
+  .dndflow {
+    flex-direction: row-reverse;
+  }
+
+  .dndflow aside {
+    width: 20%;
+    max-width: 250px;
+  }
+}
+
+.updatenode_controls {
+  width: 15%;
+  padding: 20px;
+  background-color: #fcfcfc;
+  border: 2px solid #eee;
+  box-shadow: rgba(0, 0, 0, 0.24) 0px 3px 8px;
+}
+
+.updatenode_controls input[type="text"] {
+  width: 90%;
+  padding: 7px 1rem;
+  margin: 8px 0;
+  display: inline-block;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 16px;
+}
+
+.btn {
+  width: 120px;
+  height: 35px;
+  font-size: 17px;
+  border: none;
+  background-color: #ff0072;
+  border-radius: 7px;
+  color: #eee;
+  display: block;
+  margin: auto;
+  cursor: pointer;
+}
+
+/* properties */
+.nodeName {
+  width: 200px;
+  min-height: 40px;
+  padding: 0px 8px;
+  font-size: 17px;
+  border-radius: 7px;
+  border: none;
+  background-color: #eeeded;
+  margin: 5px 0px 10px 0px;
+}
+
+/* Drawer */
+.css-i9fmh8-MuiBackdrop-root-MuiModal-backdrop {
+  background-color: rgba(0, 0, 0, 0) !important;
+}
+
+/* tabPanel */
+.css-ukrlzi-MuiButtonBase-root-MuiTab-root.Mui-selected {
+  color: #293241 !important;
+}
+
+.css-l60ff3-MuiButtonBase-root-MuiTab-root.Mui-selected {
+  color: #293241 !important;
+}
+
+/* Drawer links tab */
+.nodeData,
+.addLink,
+.selectSourceType,
+.linkUrl,
+.linkTitle {
+  width: 90%;
+  height: 35px;
+  background-color: #d9d9d9;
+  border: none;
+  border-radius: 10px;
+  margin: 15px 0px;
+  font-size: 14px;
+  padding: 10px;
+  cursor: pointer;
+}
+.nodeDescription {
+  height: auto;
+}
+
+.addLink {
+  background-color: #ee6c4d;
+  color: #293241;
+}
+
+.selectSourceType {
+  height: auto;
+  margin-bottom: 5px;
+}
+
+.linkUrl,
+.linkTitle,
+.enOrAr,
+.premOrFree {
+  margin: 5px 0px;
+  font-size: 13px;
+}
+
+.linkUrl {
+  margin-bottom: 15px;
+}
+
+.react-flow__controls {
+  background-color: #302e2e; /* Dark background */
+  color: #ee6c4d; /* Icon color */
+  border: 1px solid #ee6c4d; /* Border color */
+}
+
+.react-flow__controls-button {
+  background-color: #3e3e3e; /* Button background */
+  color: #e0fbfc; /* Button color */
+  border-radius: 4px;
+}
+
+.react-flow__controls-button:hover {
+  background-color: #eceff2; /* Hover effect */
+}
+
+/* ---------- RoadmapDetails ----------- */
+
+.roadmapCategory,
+.roadmapName,
+.roadmapDescription,
+.roadmapImageUrl {
+  font-size: 18px;
+  font-weight: 500;
+}
