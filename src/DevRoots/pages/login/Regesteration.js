@@ -1,3 +1,18 @@
+/*
+- File Name: Regestriation.js
+- Author: Shrouk Ahmed
+- Date of Creation: 20/11/2024
+- Versions Information: 1.1.0
+- Dependencies:
+  {
+  REACT , 
+  MUI ,
+  axios,
+  }
+- Contributors: shrouk ahmed, Nour Khaled, rania rabie
+- Last Modified Date: 10/12/2024
+- Description : box contain login, signup forms
+*/
 import React, { useState } from "react";
 import { Box, Button, Typography, useTheme } from "@mui/material";
 import Login from "./Login";
@@ -30,7 +45,8 @@ const Regesteration = () => {
           flexDirection: { xs: "column", md: "row" },
           boxShadow: "0px 0px 10px rgba(0, 0, 0, 0.35)",
           perspective: "1000px", // Perspective for flip animation
-          backgroundColor:"red",
+          backgroundColor: theme.palette.background.paper, // Dynamic background color
+
         }}
       >
         {/* Card Flip Container for Smaller Screens */}
@@ -63,7 +79,7 @@ const Regesteration = () => {
               sx={{
                 fontSize: "13px",
                 mt: 2,
-                color: theme.palette.text.secondary, // Dynamic text color
+                color: theme.palette.text.primary, // Dynamic text color
                 textAlign: "center",
               }}
             >
@@ -71,7 +87,7 @@ const Regesteration = () => {
               <Box
                 component="span"
                 sx={{
-                  color: theme.palette.primary.main, // Dynamic primary color
+                  color: "#ee6c4d", // Dynamic primary color
                   textTransform: "capitalize",
                   cursor: "pointer",
                   fontSize: "14px",
@@ -111,7 +127,7 @@ const Regesteration = () => {
               <Box
                 component={"span"}
                 sx={{
-                  color: theme.palette.primary.main, // Dynamic primary color
+                  color: "#ee6c4d", // Dynamic primary color
                   textTransform: "capitalize",
                   cursor: "pointer",
                   fontSize: "14px",

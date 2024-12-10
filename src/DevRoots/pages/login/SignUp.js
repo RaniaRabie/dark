@@ -1,3 +1,21 @@
+/*
+- File Name: SignUp.js
+- Author: Shrouk Ahmed
+- Date of Creation: 20/11/2024
+- Versions Information: 1.1.0
+- Dependencies:
+  {
+  REACT , 
+  MUI ,
+  axios,
+  react-router-dom,
+  react-oauth/google,
+  jwt-decode,
+  }
+- Contributors: shrouk ahmed, Nour Nkaled
+- Last Modified Date: 10/12/2024
+- Description : signup form
+*/
 import React, { useEffect, useState } from "react";
 import {
   Box,

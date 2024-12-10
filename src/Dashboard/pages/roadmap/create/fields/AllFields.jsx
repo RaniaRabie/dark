@@ -1,3 +1,19 @@
+/*
+- File Name: AllFields.jsx
+- Author: Rania Rabie
+- Date of Creation: 20/11/2024
+- Versions Information: 1.0.0
+- Dependencies:
+  {
+  REACT , 
+  MUI ,
+  axios,
+  react-router-dom,
+  }
+- Contributors: shrouk ahmed , rania rabie, nourhan khaled
+- Last Modified Date: 10/12/2024
+- Description : show all fields
+*/
 import {
   Box,
   Button,
@@ -32,7 +48,7 @@ export default function AllFields() {
   useEffect(() => {
     axios
       .get(
-        "http://localhost:3001/categories"
+        "https://careerguidance.runasp.net/api/Dashboard/GetAllCategoryInDatabase"
       )
       .then((response) => {
         setFields(response.data);
@@ -62,7 +78,7 @@ export default function AllFields() {
     if (selectedFieldId) {
       axios
         .delete(
-          `http://localhost:3001/categories/${selectedFieldId}`
+          `https://careerguidance.runasp.net/api/Dashboard/DeleteRoadmapCategory/${selectedFieldId}`
         )
         .then(() => {
           setFields((prevFields) =>
@@ -101,7 +117,7 @@ const theme = useTheme();
             }}
           >
             <Typography sx={{ flexGrow: 1 }}>
-              {field.fieldName}
+              {field.category}
             </Typography>
 
             <Tooltip title="Edit field">

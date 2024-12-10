@@ -16,7 +16,7 @@
   CreateRoadmap.css,
   }
 - Contributors: rania rabie,nourhan khaled
-- Last Modified Date: 1/11/2024
+- Last Modified Date: 10/12/2024
 - Description :  create roadmap
 */
 import React, {
@@ -42,13 +42,16 @@ import {
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
 import {
+  Alert,
   Box,
   Button,
   Divider,
   Drawer,
   IconButton,
+  Snackbar,
   Tab,
   Tabs,
+  useTheme,
 } from "@mui/material";
 import DeleteIcon from "@mui/icons-material/Delete";
 
@@ -392,6 +395,9 @@ const DnDFlow = () => {
   //       navigate("/allroadmaps")
   //   };
 
+  const [openSnackbar, setOpenSnackbar] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
+
   const publishNodes = async () => {
     const roadmapData = {
       roadmapCategory,
@@ -405,7 +411,7 @@ const DnDFlow = () => {
     try {
       // Post data to the server
       const response = await axios.post(
-        "https://careerguidance.runasp.net/api/Dashboard/AddDataForRoadmap",
+        "https://careerguidance.runasp.net/api/Dashboard/AddRoadmapData",
         { roadmapData: JSON.stringify(roadmapData) }
       );
 
@@ -415,6 +421,18 @@ const DnDFlow = () => {
       navigate("/dashboard/allroadmaps");
     } catch (error) {
       console.error("Error saving nodes data:", error);
+
+      if (
+        (error.response && error.response.status === 400) ||
+        (error.response && error.response.status === 409) ||
+        (error.response && error.response.status === 401)
+      ) {
+        const errorMessage = error.response.data.errors[1];
+        setErrorMessage(errorMessage);
+      } else {
+        setErrorMessage("An unexpected error occurred.");
+      }
+      setOpenSnackbar(true);
     }
   };
 
@@ -459,6 +477,17 @@ const DnDFlow = () => {
         })
         .catch((error) => {
           console.error("Error fetching roadmap:", error);
+          if (
+            (error.response && error.response.status === 400) ||
+            (error.response && error.response.status === 409) ||
+            (error.response && error.response.status === 401)
+          ) {
+            const errorMessage = error.response.data.errors[1];
+            setErrorMessage(errorMessage);
+          } else {
+            setErrorMessage("An unexpected error occurred.");
+          }
+          setOpenSnackbar(true);
         });
     }
   }, [
@@ -489,14 +518,31 @@ const DnDFlow = () => {
       })
       .catch((error) => {
         console.error("Error updating Roadmap:", error);
+        if (
+          (error.response && error.response.status === 400) ||
+          (error.response && error.response.status === 409) ||
+          (error.response && error.response.status === 401)
+        ) {
+          const errorMessage = error.response.data.errors[1];
+          setErrorMessage(errorMessage);
+        } else {
+          setErrorMessage("An unexpected error occurred.");
+        }
+        setOpenSnackbar(true);
       });
   };
+
+
+  const handleCloseSnackbar = () => {
+    setOpenSnackbar(false); // Close the Snackbar
+  };
+  const theme = useTheme()
 
   return (
     <div style={{ width: "100%", height: "90vh" }} className="dndflow">
       <Drawer anchor="right" open={open} onClose={toggleDrawer(false)}>
         <Box
-          sx={{ width: 250, ml: 2, mt: "45px" }}
+          sx={{ width: 300, ml: 2, mt: "45px" }}
           role="presentation"
           onClick={(event) => event.stopPropagation()} // Prevent closing when clicking inside the drawer
         >
@@ -520,7 +566,7 @@ const DnDFlow = () => {
               sx={{
                 borderRadius: "15px",
                 backgroundColor: tabIndex === 0 ? "#98C1D9" : "transparent", // Active tab background
-                color: tabIndex === 0 ? "#293241" : "white", // Active tab text color
+                color: tabIndex === 0 ? "#293241" : theme.palette.text.primary, // Active tab text color
                 "&.Mui-selected": {
                   backgroundColor: "#EE6C4D", // Active tab specific background color
                   color: "#FFFFFF",
@@ -530,9 +576,11 @@ const DnDFlow = () => {
             <Tab
               label="Links"
               sx={{
+                mr: 2,
+                height: "2px",
                 borderRadius: "15px",
                 backgroundColor: tabIndex === 1 ? "#98C1D9" : "transparent", // Active tab background
-                color: tabIndex === 1 ? "#293241" : "white", // Active tab text color
+                color: tabIndex === 1 ? "#293241" : theme.palette.text.primary, // Active tab text color
                 "&.Mui-selected": {
                   backgroundColor: "#EE6C4D", // Active tab specific background color
                   color: "#FFFFFF", // Active tab specific text color
@@ -823,6 +871,20 @@ const DnDFlow = () => {
         )}
       </div>
       <Sidebar />
+      <Snackbar
+          open={openSnackbar}
+          autoHideDuration={5000}
+          onClose={handleCloseSnackbar}
+          anchorOrigin={{ vertical: "top", horizontal: "center" }}
+        >
+          <Alert
+            onClose={handleCloseSnackbar}
+            severity="error"
+            sx={{ width: "100%" }}
+          >
+            {errorMessage}
+          </Alert>
+        </Snackbar>
     </div>
   );
 };

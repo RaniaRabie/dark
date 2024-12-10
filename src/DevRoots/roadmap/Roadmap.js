@@ -2,7 +2,7 @@
 - File Name: Roadmap.js
 - Author: rania rabie
 - Date of Creation: 17/9/2024
-- Versions Information: 1.0.0
+- Versions Information: 1.1.0
 - Dependencies:
   {
   REACT , 
@@ -13,7 +13,7 @@
   Roadmap.css
   }
 - Contributors:  rania rabie,nourhan khaled
-- Last Modified Date: 1/11/2024
+- Last Modified Date: 10/12/2024
 - Description : a roadmap component created by REACT and MUI that display each roadmap data
 */
 import React, { useEffect, useState } from "react";

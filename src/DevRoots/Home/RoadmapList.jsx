@@ -11,7 +11,7 @@
   react-router-dom ,
   }
 - Contributors: shrouk ahmed , rania rabie,nourhan khaled
-- Last Modified Date: 1/11/2024
+- Last Modified Date: 10/12/2024
 - Description : a list of all roadmaps component created by REACT and MUI
 */
 import React, { useEffect, useState } from "react";
@@ -49,7 +49,7 @@ const RoadmapList = () => {
       
       // Fetch categories from the server
     axios
-    .get("http://localhost:3001/categories")
+    .get("https://careerguidance.runasp.net/api/Dashboard/GetAllCategoryInDatabase")
     .then((response) => {
       setCategories(response.data); // Set fetched categories
     })
@@ -98,12 +98,12 @@ const RoadmapList = () => {
 
         {categories
           .filter(
-            (category) => category.fieldName.toLowerCase() !== "start here"
+            (category) => category.category.toLowerCase() !== "start here"
           )
           .map((category) => {
             const filteredRoadmaps = roadmaps.filter(
               (roadmap) =>
-                roadmap.roadmapData.roadmapCategory === category.fieldName
+                roadmap.roadmapData.roadmapCategory === category.category
             );
 
             return (
@@ -116,7 +116,7 @@ const RoadmapList = () => {
                       padding: "2px",
                     }}
                   >
-                    {category.fieldName}
+                    {category.category}
                   </h3>
                 </Divider>
 
@@ -144,7 +144,7 @@ const RoadmapList = () => {
                         <Link to={`/roadmap/${roadmap.id}`} className="roadmap">
                           <img
                             src={roadmap.roadmapData.imageUrl}
-                            alt={`${category.fieldName.toLowerCase()} img`}
+                            alt={`${category.category.toLowerCase()} img`}
                             className="roadmapImg"
                             width={"100%"}
                           />

@@ -284,7 +284,7 @@ const ForgotPassword = () => {
         sx={{ marginTop: "10px", color: "#293241", fontWeight: "bold" }}
       >
         <Link
-          to="/login"
+          to="/regesteration"
           style={{ textDecoration: "none", color: theme.palette.text.primary }}
         >
           Back to Sign in

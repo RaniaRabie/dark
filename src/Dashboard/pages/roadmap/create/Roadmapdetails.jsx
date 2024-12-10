@@ -8,9 +8,10 @@
   REACT , 
   }
 - Contributors: rania rabie,nourhan khaled
-- Last Modified Date: 1/11/2024
+- Last Modified Date: 10/12/2024
 - Description : Roadmap details
 */
+
 import React, { useContext, useEffect, useState } from "react";
 import TextField from "@mui/material/TextField";
 import {
@@ -22,11 +23,14 @@ import {
   FormControl,
   Tooltip,
   useTheme,
+  Snackbar,
+  Alert,
 } from "@mui/material";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import axios from "axios";
 import { useEdgesState, useNodesState } from "@xyflow/react";
 import { RoadmapContext } from "./RoadmapContext";
+import { Category, Description } from "@mui/icons-material";
 
 export default function RoadmapDetails() {
   const {
@@ -58,6 +62,22 @@ export default function RoadmapDetails() {
     image: false,
   });
 
+  const [categories, setCategories] = useState([]);
+  const [openSnackbar, setOpenSnackbar] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
+
+  useEffect(() => {
+    // Fetch categories from the server
+    axios
+      .get("https://careerguidance.runasp.net/api/Dashboard/GetAllCategoryInDatabase")
+      .then((response) => {
+        setCategories(response.data); // Store fetched categories in state
+      })
+      .catch((error) => {
+        console.error("Error fetching categories:", error);
+      });
+  }, []);
+
   const updateRoadmap = async () => {
     try {
       const parsedRoadmap = JSON.stringify({
@@ -79,6 +99,17 @@ export default function RoadmapDetails() {
       console.log("Roadmap updated successfully.");
     } catch (error) {
       console.error("Error updating roadmap:", error);
+      if (
+        (error.response && error.response.status === 400) ||
+        (error.response && error.response.status === 409) ||
+        (error.response && error.response.status === 401)
+      ) {
+        const errorMessage = error.response.data.errors[1];
+        setErrorMessage(errorMessage);
+      } else {
+        setErrorMessage("An unexpected error occurred.");
+      }
+      setOpenSnackbar(true);
     }
   };
 
@@ -94,12 +125,53 @@ export default function RoadmapDetails() {
     return newErrors;
   };
 
-  const handleCreateClick = () => {
+  // const handleCreateClick = () => {
+  //   setTouched({ category: true, name: true, description: true, image: true });
+  //   const hasErrors = validateFields();
+
+  //   if (
+  //     !hasErrors.category &&
+  //     !hasErrors.name &&
+  //     !hasErrors.description &&
+  //     !hasErrors.image
+  //   ) {
+  //     navigate("/dashboard/create");
+  //   }
+  // };
+
+  const handleCreateClick = async () => {
     setTouched({ category: true, name: true, description: true, image: true });
     const hasErrors = validateFields();
 
     if (!hasErrors.category && !hasErrors.name && !hasErrors.description && !hasErrors.image) {
-      navigate("/dashboard/create");
+
+      try {
+        // Make an API call to check if the roadmap name exists
+        const response = await axios.post("https://careerguidance.runasp.net/api/Dashboard/CheckRoadmapInformation", {
+          category: roadmapCategory,
+          roadmapName: roadmapName, // Assuming `name` is the roadmap name variable
+          discription: roadmapDescription,
+          imageUrl: imageUrl
+        });
+
+        if (response.status === 200) {
+          navigate("/dashboard/create");
+          console.log("you can continue")
+        }
+      } catch (error) {
+        console.error("Failed to check roadmap name:", error);
+        if (
+          (error.response && error.response.status === 400) ||
+          (error.response && error.response.status === 409) ||
+          (error.response && error.response.status === 401)
+        ) {
+          const errorMessage = error.response.data.errors[1];
+          setErrorMessage(errorMessage);
+        } else {
+          setErrorMessage("An unexpected error occurred.");
+        }
+        setOpenSnackbar(true);
+      }
     }
   };
 
@@ -127,7 +199,12 @@ export default function RoadmapDetails() {
     setTouched({ category: true, name: true, description: true, image: true });
     const hasErrors = validateFields();
 
-    if (!hasErrors.category && !hasErrors.name && !hasErrors.description && !hasErrors.image) {
+    if (
+      !hasErrors.category &&
+      !hasErrors.name &&
+      !hasErrors.description &&
+      !hasErrors.image
+    ) {
       await updateRoadmap();
       navigate(`/dashboard/create/${id}`);
     }
@@ -164,9 +241,14 @@ export default function RoadmapDetails() {
     setEdges,
   ]);
 
+  const handleCloseSnackbar = () => {
+    setOpenSnackbar(false); // Close the Snackbar
+  };
+
+
   const isCreatePath = location.pathname === "/dashboard/details";
   const isUpdatePath = location.pathname.startsWith("/dashboard/details/");
-  const theme = useTheme()
+  const theme = useTheme();
   return (
     <Box sx={{ width: "80%", m: "auto", mt: 2 }}>
       <Stack direction={"column"} alignItems={"center"} sx={{ my: 2 }}>
@@ -195,15 +277,20 @@ export default function RoadmapDetails() {
                   value={roadmapCategory}
                   onChange={handleCategoryChange}
                   sx={{
-                    backgroundColor:  theme.palette.mode === "dark" ? "#262626" : "#D9D9D9",
-                    color : theme.palette.text.primary,                    borderRadius: "10px",
+                    backgroundColor:
+                      theme.palette.mode === "dark" ? "#262626" : "#D9D9D9",
+                    color: theme.palette.text.primary,
+                    borderRadius: "10px",
                     width: "350px",
                     height: "45px",
                   }}
                 >
                   <MenuItem value="">Select a category</MenuItem>
-                  <MenuItem value="Web Development">Web Development</MenuItem>
-                  <MenuItem value="Network">Network</MenuItem>
+                  {categories.map((category) => (
+                    <MenuItem key={category.id} value={category.category}>
+                      {category.category}
+                    </MenuItem>
+                  ))}
                 </Select>
               </span>
             </Tooltip>
@@ -234,8 +321,10 @@ export default function RoadmapDetails() {
                   sx={{
                     mt: 1,
                     "& .MuiOutlinedInput-root": {
-                      backgroundColor:  theme.palette.mode === "dark" ? "#262626" : "#D9D9D9",
-                      color : theme.palette.text.primary,                      border: "none",
+                      backgroundColor:
+                        theme.palette.mode === "dark" ? "#262626" : "#D9D9D9",
+                      color: theme.palette.text.primary,
+                      border: "none",
                       width: "350px",
                       height: "45px",
                       borderRadius: "10px",
@@ -277,8 +366,10 @@ export default function RoadmapDetails() {
                   sx={{
                     mt: 1,
                     "& .MuiOutlinedInput-root": {
-                      backgroundColor:  theme.palette.mode === "dark" ? "#262626" : "#D9D9D9",
-                      color : theme.palette.text.primary,                      width: "350px",
+                      backgroundColor:
+                        theme.palette.mode === "dark" ? "#262626" : "#D9D9D9",
+                      color: theme.palette.text.primary,
+                      width: "350px",
                       minHeight: "130px",
                       borderRadius: "10px",
                       alignItems: "flex-start",
@@ -294,42 +385,38 @@ export default function RoadmapDetails() {
         <Box>
           <label className="roadmapImageUrl">Image URL</label>
           <br />
-          <FormControl
-            variant="outlined"
-            error={errors.image}
-            sx={{ mt: 1 }}
-          >
+          <FormControl variant="outlined" error={errors.image} sx={{ mt: 1 }}>
             <Tooltip
               title={
-                touched.image && errors.image
-                  ? "This field is required."
-                  : ""
+                touched.image && errors.image ? "This field is required." : ""
               }
               arrow
               open={touched.image && errors.image}
               disableHoverListener={!errors.image}
             >
               <span>
-          <TextField
-            id="outlined-image-url"
-            variant="outlined"
-            placeholder="Paste image URL here"
-            value={imageUrl}
-            onChange={handleRoadmapImageChange}
-            error={errors.image}
-            sx={{
-              my: 1,
-              "& .MuiOutlinedInput-root": {
-                backgroundColor:  theme.palette.mode === "dark" ? "#262626" : "#D9D9D9",
-                color : theme.palette.text.primary,                border: "none",
-                width: "350px",
-                height: "45px",
-                borderRadius: "10px",
-                fontSize: "18px",
-              },
-            }}
-          />
-          </span>
+                <TextField
+                  id="outlined-image-url"
+                  variant="outlined"
+                  placeholder="Paste image URL here"
+                  value={imageUrl}
+                  onChange={handleRoadmapImageChange}
+                  error={errors.image}
+                  sx={{
+                    my: 1,
+                    "& .MuiOutlinedInput-root": {
+                      backgroundColor:
+                        theme.palette.mode === "dark" ? "#262626" : "#D9D9D9",
+                      color: theme.palette.text.primary,
+                      border: "none",
+                      width: "350px",
+                      height: "45px",
+                      borderRadius: "10px",
+                      fontSize: "18px",
+                    },
+                  }}
+                />
+              </span>
             </Tooltip>
           </FormControl>
         </Box>
@@ -351,7 +438,14 @@ export default function RoadmapDetails() {
           <Button
             variant="contained"
             onClick={handleCreateClick}
-            sx={{ width: "200px", display: "block", m: "auto", my: 2 ,backgroundColor :"#ee6c4d",}}          >
+            sx={{
+              width: "200px",
+              display: "block",
+              m: "auto",
+              my: 2,
+              backgroundColor: "#ee6c4d",
+            }}
+          >
             Create
           </Button>
         )}
@@ -365,6 +459,20 @@ export default function RoadmapDetails() {
           </Button>
         )}
       </Stack>
+      <Snackbar
+          open={openSnackbar}
+          autoHideDuration={6000}
+          onClose={handleCloseSnackbar}
+          anchorOrigin={{ vertical: "top", horizontal: "center" }}
+        >
+          <Alert
+            onClose={handleCloseSnackbar}
+            severity="error"
+            sx={{ width: "100%" }}
+          >
+            {errorMessage}
+          </Alert>
+        </Snackbar>
     </Box>
   );
 }

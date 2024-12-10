@@ -2,7 +2,7 @@
 - File Name: App.js
 - Author: rania rabie
 - Date of Creation: 17/9/2024
-- Versions Information: 1.0.0
+- Versions Information: 1.1.0
 - Dependencies:
   {
   REACT , 
@@ -29,7 +29,7 @@
   App.css
   }
 - Contributors: rania rabie,nourhan khaled, shrouk ahmed
-- Last Modified Date: 1/11/2024
+- Last Modified Date: 10/12/2024
 - Description : rendering all websites routes
 */
 
@@ -64,7 +64,8 @@ import AllFields from "./Dashboard/pages/roadmap/create/fields/AllFields";
 import AddField from "./Dashboard/pages/roadmap/create/fields/AddField";
 import Regesteration from "./DevRoots/pages/login/Regesteration";
 import ProtectedRoute from "./ProtectedRoute";
-import Unauthorized from "./Unauthorized/Unauthorized";
+import Unauthorized from "./error/Unauthorized";
+import NotFound from "./error/NotFound";
 
 function App() {
   
@@ -108,6 +109,9 @@ function App() {
         <Route path="addfield" element={<AddField />} />
         <Route path="addfield/:id" element={<AddField />} />
       </Route>
+
+      {/* NotFound */}
+      <Route path="*" element={<NotFound />} />
     </Routes>
   );
 }

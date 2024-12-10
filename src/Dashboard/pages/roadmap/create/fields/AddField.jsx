@@ -1,3 +1,20 @@
+/*
+- File Name: AddField.jsx
+- Author: Rania Rabie
+- Date of Creation: 20/11/2024
+- Versions Information: 1.0.0
+- Dependencies:
+  {
+  REACT , 
+  MUI ,
+  axios,
+  react-router-dom,
+  }
+- Contributors: shrouk ahmed , rania rabie, nourhan khaled
+- Last Modified Date: 10/12/2024
+- Description : add new fields
+*/
+
 import {
   Box,
   Button,
@@ -5,7 +22,10 @@ import {
   Stack,
   TextField,
   Tooltip,
-  useTheme, Typography,
+  useTheme,
+  Typography,
+  Alert,
+  Snackbar,
 } from "@mui/material";
 import axios from "axios";
 import React, { useEffect, useState } from "react";
@@ -37,18 +57,35 @@ export default function AddField() {
     return newErrors;
   };
 
+  const [openSnackbar, setOpenSnackbar] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
+
   const handleAddFieldClick = async () => {
     setTouched({ field: true });
     const hasErrors = validateFields();
     if (!hasErrors.field) {
       try {
-        await axios.post("http://localhost:3001/categories", {
-          fieldName: field,
-        });
+        await axios.post(
+          "https://careerguidance.runasp.net/api/Dashboard/AddRoadmapCategory",
+          {
+            roadmapCategory: field,
+          }
+        );
         setField("");
         navigate("/dashboard/allfields");
       } catch (error) {
         console.error("Error sending data:", error);
+        if (
+          (error.response && error.response.status === 400) ||
+          (error.response && error.response.status === 409) ||
+          (error.response && error.response.status === 401)
+        ) {
+          const errorMessage = error.response.data;
+          setErrorMessage(errorMessage);
+        } else {
+          setErrorMessage("An unexpected error occurred.");
+        }
+        setOpenSnackbar(true);
       }
     }
   };
@@ -57,11 +94,13 @@ export default function AddField() {
   useEffect(() => {
     if (isUpdatePath && id) {
       axios
-        .get(`http://localhost:3001/categories/${id}`)
+        .get(
+          `https://careerguidance.runasp.net/api/Dashboard/GetCategory/${id}`
+        )
         .then((response) => {
-          setField(response.data.fieldName); // Populate field state with fetched data
+          setField(response.data.category); // Populate field state with fetched data
         })
-        
+
         .catch((error) => {
           console.error("Error fetching data:", error);
         });
@@ -73,14 +112,28 @@ export default function AddField() {
     const hasErrors = validateFields();
     if (!hasErrors.field) {
       try {
-        await axios.put(`http://localhost:3001/categories/${id}`, {
-          fieldName: field,
-        });
+        await axios.put(
+          `https://careerguidance.runasp.net/api/Dashboard/UpdateRoadmapCategory/${id}`,
+          {
+            roadmapCategory: field,
+          }
+        );
         setField("");
         navigate("/dashboard/allfields");
       } catch (error) {
         console.error("Error updating data:", error);
+        if (
+          (error.response && error.response.status === 400) ||
+          (error.response && error.response.status === 409) ||
+          (error.response && error.response.status === 401)
+        ) {
+          const errorMessage = error.response.data.errors[1];
+          setErrorMessage(errorMessage);
+        } else {
+          setErrorMessage("An unexpected error occurred.");
+        }
       }
+      setOpenSnackbar(true);
     }
   };
 
@@ -88,84 +141,108 @@ export default function AddField() {
     setField(eo.target.value);
   };
 
+  const handleCloseSnackbar = () => {
+    setOpenSnackbar(false); // Close the Snackbar
+  };
   return (
     <>
-        <Stack alignItems={"center"}>
-          <Typography variant="h6" color= {theme.palette.text.primary}>Add New field</Typography>
-            <Box
-              component="form"
-              sx={{ "& > :not(style)": { m: 1}}}
-              noValidate
-              autoComplete="off"
+      <Stack alignItems={"center"}>
+        <Typography variant="h6" color={theme.palette.text.primary}>
+          Add New field
+        </Typography>
+        <Box
+          component="form"
+          sx={{ "& > :not(style)": { m: 1 } }}
+          noValidate
+          autoComplete="off"
+        >
+          <FormControl
+            variant="outlined"
+            error={errors.field}
+            sx={{ mt: 1, display: "block" }}
+          >
+            <Tooltip
+              title={
+                touched.field && errors.field ? "This field is required." : ""
+              }
+              arrow
+              open={touched.field && errors.field}
+              disableHoverListener={!errors.field}
             >
-              <FormControl variant="outlined" error={errors.field} sx={{ mt: 1 , display: "block"}}>
-                <Tooltip
-                  title={
-                    touched.field && errors.field ? "This field is required." : ""
-                  }
-                  arrow
-                  open={touched.field && errors.field}
-                  disableHoverListener={!errors.field}
-                >
-                  <span>
-                    <TextField
-                      id="outlined-basic"
-                      variant="outlined"
-                      value={field}
-                      onChange={handleAddFieldChange}
-                      autoComplete="off"
-                      error={errors.field}
-                      sx={{
-                        mt: 1,
-                        "& .MuiOutlinedInput-root": {
-                          backgroundColor:
-                            theme.palette.mode === "dark" ? "#262626" : "#D9D9D9",
-                          color: theme.palette.text.primary,
-                          border: "none",
-                          width: "350px",
-                          height: "45px",
-                          borderRadius: "10px",
-                          fontSize: "18px",
-                        },
-                      }}
-                    />
-                  </span>
-                </Tooltip>
-              </FormControl>
-          
-              {/* Buttons */}
-              {isCreatePath && (
-                <Button
-                  variant="contained"
-                  onClick={handleAddFieldClick}
+              <span>
+                <TextField
+                  id="outlined-basic"
+                  variant="outlined"
+                  value={field}
+                  onChange={handleAddFieldChange}
+                  autoComplete="off"
+                  error={errors.field}
                   sx={{
-                    width: "200px",
-                    display: "block",
-                    justifySelf:"center",
-                    my: 2,
-                    backgroundColor: "#ee6c4d",
+                    mt: 1,
+                    "& .MuiOutlinedInput-root": {
+                      backgroundColor:
+                        theme.palette.mode === "dark" ? "#262626" : "#D9D9D9",
+                      color: theme.palette.text.primary,
+                      border: "none",
+                      width: "350px",
+                      height: "45px",
+                      borderRadius: "10px",
+                      fontSize: "18px",
+                    },
                   }}
-                >
-                  Add Field
-                </Button>
-              )}
-              {isUpdatePath && (
-                <Button
-                  onClick={handleUpdateFieldClick}
-                  variant="contained"
-                  sx={{
-                      width: "200px",
-                      display: "block",
-                      justifySelf:"center",
-                      my: 2,
-                      backgroundColor: "#ee6c4d",
-                    }}
-                >
-                  Update Field
-                </Button>
-              )}
-            </Box>
-        </Stack >
+                />
+              </span>
+            </Tooltip>
+          </FormControl>
+
+          {/* Buttons */}
+          {isCreatePath && (
+            <Button
+              variant="contained"
+              onClick={handleAddFieldClick}
+              sx={{
+                width: "200px",
+                display: "block",
+                justifySelf: "center",
+                my: 2,
+                backgroundColor: "#ee6c4d",
+              }}
+            >
+              Add Field
+            </Button>
+          )}
+          {isUpdatePath && (
+            <Button
+              onClick={handleUpdateFieldClick}
+              variant="contained"
+              sx={{
+                width: "200px",
+                display: "block",
+                justifySelf: "center",
+                my: 2,
+                backgroundColor: "#ee6c4d",
+              }}
+            >
+              Update Field
+            </Button>
+          )}
+        </Box>
+        
+      </Stack>
+      <Snackbar
+          open={openSnackbar}
+          autoHideDuration={6000}
+          onClose={handleCloseSnackbar}
+          anchorOrigin={{ vertical: "top", horizontal: "center" }}
+        >
+          <Alert
+            onClose={handleCloseSnackbar}
+            severity="error"
+            sx={{ width: "100%" }}
+          >
+            {errorMessage}
+          </Alert>
+        </Snackbar>
     </>
   );
 }
