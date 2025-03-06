@@ -66,6 +66,11 @@ import Regesteration from "./DevRoots/pages/login/Regesteration";
 import ProtectedRoute from "./ProtectedRoute";
 import Unauthorized from "./error/Unauthorized";
 import NotFound from "./error/NotFound";
+import StepperUi from "./Dashboard/pages/AddStartHereContent/StepperUi";
+// @ts-ignore
+import NewCarouselSection from "./Dashboard/pages/Carousel/NewCarouselSection";
+import NewCarousel from "Dashboard/pages/Carousel/NewCarousel";
+import Home from "./DevRoots/Home/Home";
 
 function App() {
   
@@ -73,7 +78,8 @@ function App() {
     <Routes>
       {/* devroots paths */}
       <Route path="/" element={<DevRootsOutlet />}>
-        <Route index element={<RoadmapList />} />
+        <Route index element={<Home />} />
+        <Route path="allroadmaps" element={<RoadmapList/>} />
         <Route path="regesteration" element={<Regesteration />} />
         <Route path="ForgotPassword" element={<ForgotPassword />} />
         <Route path="SetNewPassword" element={<SetNewPassword />} />
@@ -108,6 +114,11 @@ function App() {
         <Route path="allfields" element={<AllFields />} />
         <Route path="addfield" element={<AddField />} />
         <Route path="addfield/:id" element={<AddField />} />
+        <Route path="addStartHereContent" element={<StepperUi />} />
+        <Route path="newCarouselSection" element={<NewCarouselSection />} />
+        <Route path="newCarousel" element={<NewCarousel />} />
+        <Route path="*" element={<NotFound />} />
+
       </Route>
 
       {/* NotFound */}

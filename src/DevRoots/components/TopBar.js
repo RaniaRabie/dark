@@ -34,10 +34,6 @@ import {
   alpha,
 } from "@mui/material";
 import { useNavigate } from "react-router-dom";
-import HomeIcon from "@mui/icons-material/Home";
-import StartIcon from "@mui/icons-material/Start";
-import ServiceIcon from "@mui/icons-material/Assignment";
-import InfoIcon from "@mui/icons-material/Info";
 import DarkModeOutlinedIcon from "@mui/icons-material/DarkModeOutlined";
 import LightModeOutlinedIcon from "@mui/icons-material/LightModeOutlined";
 import SearchIcon from "@mui/icons-material/Search";
@@ -109,19 +105,19 @@ const TopBar = ({ setMode }) => {
   const renderMenuItems = () => (
     <>
       <MenuItem onClick={() => navigate("/")}>
-        <HomeIcon fontSize="small" sx={{ mr: 1 }} />
+        {/* <HomeIcon fontSize="small" sx={{ mr: 1 }} /> */}
         Home
       </MenuItem>
       <MenuItem onClick={() => navigate("/start")}>
-        <StartIcon fontSize="small" sx={{ mr: 1 }} />
+        {/* <StartIcon fontSize="small" sx={{ mr: 1 }} /> */}
         Start Here
       </MenuItem>
       <MenuItem onClick={() => navigate("/service")}>
-        <ServiceIcon fontSize="small" sx={{ mr: 1 }} />
+        {/* <ServiceIcon fontSize="small" sx={{ mr: 1 }} /> */}
         Service
       </MenuItem>
       <MenuItem onClick={() => navigate("/about")}>
-        <InfoIcon fontSize="small" sx={{ mr: 1 }} />
+        {/* <InfoIcon fontSize="small" sx={{ mr: 1 }} /> */}
         About Us
       </MenuItem>
     </>

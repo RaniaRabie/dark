@@ -139,6 +139,8 @@ export default function AddField() {
 
   const handleAddFieldChange = (eo) => {
     setField(eo.target.value);
+    setErrors((prev) => ({ ...prev, field: eo.target.value === "" }));
+
   };
 
   const handleCloseSnackbar = () => {
@@ -155,6 +157,14 @@ export default function AddField() {
           sx={{ "& > :not(style)": { m: 1 } }}
           noValidate
           autoComplete="off"
+          onSubmit={(e) => {
+            e.preventDefault(); // Prevents the default page reload
+            if (isCreatePath) {
+              handleAddFieldClick(); // Submit logic for create
+            } else if (isUpdatePath) {
+              handleUpdateFieldClick(); // Submit logic for update
+            }
+          }}
         >
           <FormControl
             variant="outlined"

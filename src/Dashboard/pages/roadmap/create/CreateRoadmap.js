@@ -61,9 +61,7 @@ import { RoadmapContext } from "./RoadmapContext";
 import Sidebar from "./Sidebar";
 import { DnDProvider, useDnD } from "./DnDContext";
 import "./CreateRoadmap.css";
-
-let id = 0;
-const getId = () => `dndnode_${id++}`;
+import FourHandlesNode from "./FourHandlesNode";
 
 function TabPanel(props) {
   const { children, value, index, ...other } = props;
@@ -80,7 +78,11 @@ function TabPanel(props) {
     </div>
   );
 }
-
+const CustomNode = ({ data }) => (
+  <div>
+    <p>{data.label || "Custom Node"}</p>
+  </div>
+);
 const DnDFlow = () => {
   const location = useLocation();
   const reactFlowWrapper = useRef(null);
@@ -108,6 +110,71 @@ const DnDFlow = () => {
   const navigate = useNavigate();
   const [roadmap, setRoadmap] = useState(null);
   const { id } = useParams();
+
+  const nodeTypes = {
+    fourhandles: FourHandlesNode,
+    custom: CustomNode, // Register custom node
+  };
+
+  const onConnect = useCallback(
+    (params) => setEdges((eds) => addEdge(params, eds)),
+    [setEdges]
+  );
+
+  const onDragOver = useCallback((event) => {
+    event.preventDefault();
+    event.dataTransfer.dropEffect = "move";
+  }, []);
+
+  const onDrop = useCallback(
+    (event) => {
+      event.preventDefault();
+
+      // Check if type is defined
+      if (!type) {
+        return;
+      }
+
+      // Get the position where the new node will be placed
+      const position = screenToFlowPosition({
+        x: event.clientX,
+        y: event.clientY,
+      });
+
+      // Find the maximum existing ID to ensure uniqueness
+      const existingIds = nodes.map((node) => parseInt(node.id, 10)); // Convert IDs to numbers
+      const maxId = existingIds.length > 0 ? Math.max(...existingIds) : -1; // Get the maximum ID or -1 if no nodes exist
+
+      // Create a new unique ID
+      const newId = (maxId + 1).toString(); // Increment the maxId for the new ID
+
+      // Create the new node object
+      const newNode = {
+        id: newId, // Use the new unique ID
+        type, // Type of the new node
+        position, // Position of the new node
+        data: { label: `${type} node` }, // Data for the new node
+        style: {
+          backgroundColor: "#ffffff", // Background color
+          color: "#000000", // Text color
+          fontSize: "14px", // Font size
+          fontWeight: "normal", // Font weight
+          width: "150px", // Width of the node
+          height: "38px", // Height of the node
+          borderRadius: "5px", // Border radius
+          border: "1px solid black",
+          textAlign: "center", // Centers text horizontally
+          display: "flex", // Turns the container into a flexbox
+          alignItems: "center", // Centers the text vertically
+          justifyContent: "center",
+        },
+      };
+
+      // Update the nodes by concatenating the new node with existing ones
+      setNodes((prevNodes) => [...prevNodes, newNode]); // Use spread operator to concatenate
+    },
+    [type, screenToFlowPosition, nodes, setNodes] // Include nodes in dependencies
+  );
 
   // Handle node selection
   const onNodeClick = (e, node) => {
@@ -283,61 +350,6 @@ const DnDFlow = () => {
     setnodeDescription(newDescription);
     updateNodeStyles({ description: newDescription });
   };
-
-  const onConnect = useCallback(
-    (params) => setEdges((eds) => addEdge(params, eds)),
-    [setEdges]
-  );
-
-  const onDragOver = useCallback((event) => {
-    event.preventDefault();
-    event.dataTransfer.dropEffect = "move";
-  }, []);
-
-  const onDrop = useCallback(
-    (event) => {
-      event.preventDefault();
-
-      // Check if type is defined
-      if (!type) {
-        return;
-      }
-
-      // Get the position where the new node will be placed
-      const position = screenToFlowPosition({
-        x: event.clientX,
-        y: event.clientY,
-      });
-
-      // Find the maximum existing ID to ensure uniqueness
-      const existingIds = nodes.map((node) => parseInt(node.id, 10)); // Convert IDs to numbers
-      const maxId = existingIds.length > 0 ? Math.max(...existingIds) : -1; // Get the maximum ID or -1 if no nodes exist
-
-      // Create a new unique ID
-      const newId = (maxId + 1).toString(); // Increment the maxId for the new ID
-
-      // Create the new node object
-      const newNode = {
-        id: newId, // Use the new unique ID
-        type, // Type of the new node
-        position, // Position of the new node
-        data: { label: `${type} node` }, // Data for the new node
-        style: {
-          backgroundColor: "#ffffff", // Background color
-          color: "#000000", // Text color
-          fontSize: "14px", // Font size
-          fontWeight: "normal", // Font weight
-          width: "150px", // Width of the node
-          height: "38px", // Height of the node
-          borderRadius: "5px", // Border radius
-        },
-      };
-
-      // Update the nodes by concatenating the new node with existing ones
-      setNodes((prevNodes) => [...prevNodes, newNode]); // Use spread operator to concatenate
-    },
-    [screenToFlowPosition, type, nodes, setNodes] // Include nodes in dependencies
-  );
 
   const [open, setOpen] = React.useState(false);
 
@@ -532,11 +544,10 @@ const DnDFlow = () => {
       });
   };
 
-
   const handleCloseSnackbar = () => {
     setOpenSnackbar(false); // Close the Snackbar
   };
-  const theme = useTheme()
+  const theme = useTheme();
 
   return (
     <div style={{ width: "100%", height: "90vh" }} className="dndflow">
@@ -738,18 +749,6 @@ const DnDFlow = () => {
               onChange={handleDescriptionChange}
             />
 
-            {/* <Box sx={{ my: 3 }}>
-          <label className="nodeDescription">Description</label>
-          <br />
-          <TextField
-            id="outlined-multiline-flexible"
-            multiline
-            value={nodeDescription}
-            onChange={handleDescriptionChange}
-            sx={{ mt: 2 }}
-          />
-        </Box> */}
-
             <br />
             <Divider />
             {links.map((link, index) => (
@@ -846,6 +845,7 @@ const DnDFlow = () => {
           onDrop={onDrop}
           onDragOver={onDragOver}
           fitView
+          nodeTypes={nodeTypes}
         >
           <Controls />
           <Background variant={BackgroundVariant.Dots} />
@@ -872,19 +872,19 @@ const DnDFlow = () => {
       </div>
       <Sidebar />
       <Snackbar
-          open={openSnackbar}
-          autoHideDuration={5000}
+        open={openSnackbar}
+        autoHideDuration={5000}
+        onClose={handleCloseSnackbar}
+        anchorOrigin={{ vertical: "top", horizontal: "center" }}
+      >
+        <Alert
           onClose={handleCloseSnackbar}
-          anchorOrigin={{ vertical: "top", horizontal: "center" }}
+          severity="error"
+          sx={{ width: "100%" }}
         >
-          <Alert
-            onClose={handleCloseSnackbar}
-            severity="error"
-            sx={{ width: "100%" }}
-          >
-            {errorMessage}
-          </Alert>
-        </Snackbar>
+          {errorMessage}
+        </Alert>
+      </Snackbar>
     </div>
   );
 };

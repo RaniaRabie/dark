@@ -18,7 +18,7 @@ import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom"; // Import Link to navigate between pages
 import axios from "axios";
 import { Box, Divider, Stack, Typography, useTheme } from "@mui/material";
-// import Carousel from "./Carousel/Carousel";
+import Carousel from "./Carousel/Carousel";
 
 const RoadmapList = () => {
   const [roadmaps, setRoadmaps] = useState([]);
@@ -62,7 +62,6 @@ const RoadmapList = () => {
   return (
     <div>
       <Box sx={{ width: "80%", m: "auto", mt: 3 }}>
-        {/* <Carousel/> */}
         <Box sx={{ width: {xs:"100%", lg:"80%"}, mx: "auto", py: 4 }}>
           <h2 style={{ textAlign: "center" }}>HI!</h2>
           <Typography

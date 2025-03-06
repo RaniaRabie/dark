@@ -1,74 +1,172 @@
-import * as React from 'react';
-import BottomNavigation from '@mui/material/BottomNavigation';
-import BottomNavigationAction from '@mui/material/BottomNavigationAction';
-import FolderIcon from '@mui/icons-material/Folder';
-import RestoreIcon from '@mui/icons-material/Restore';
-import FavoriteIcon from '@mui/icons-material/Favorite';
-import LocationOnIcon from '@mui/icons-material/LocationOn';
-import HomeIcon from '@mui/icons-material/Home'; // Import Home icon
-import InfoIcon from '@mui/icons-material/Info'; // Import Info icon
-import { Typography, Box, Grid } from '@mui/material';
+import React, { useState } from "react";
+import { Box, Container, Grid, Typography, IconButton, Switch, Link, Tooltip, useTheme } from "@mui/material";
+import { styled } from "@mui/system";
+import { FaFacebook, FaTwitter, FaInstagram, FaLinkedin } from "react-icons/fa";
+import { MdEmail, MdPhone, MdLocationOn } from "react-icons/md";
 
-export default function LabelBottomNavigation() {
-  const [value, setValue] = React.useState('recents');
+const StyledFooter = styled(Box)(({ theme, darkMode }) => ({
+  background: darkMode
+    ? "linear-gradient(45deg, #1a237e 30%, #311b92 90%)"
+    : "linear-gradient(45deg, #f5f5f5 30%, #e0e0e0 90%)",
+  padding: theme.spacing(6, 0),
+  color: darkMode ? "#fff" : "#333",
+  transition: "all 0.3s ease-in-out",
+  boxShadow: "0 4px 20px rgba(0, 0, 0, 0.1)",
+  position: "relative",
+  zIndex: 1,
+  "&::before": {
+    content: '""',
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    height: "4px",
+    background: "linear-gradient(90deg, #ff4081 0%, #7c4dff 100%)"
+  }
+}));
 
-  const handleChange = (event, newValue) => {
-    setValue(newValue);
-  };
+const SocialButton = styled(IconButton)(({ theme, darkMode }) => ({
+  margin: theme.spacing(0, 1),
+  color: darkMode ? "#fff" : "#333",
+  transition: "all 0.3s ease",
+  "&:hover": {
+    transform: "translateY(-3px)",
+    color: "#7c4dff"
+  },
+  "&:focus": {
+    outline: "2px solid #7c4dff",
+    outlineOffset: "2px"
+  }
+}));
+
+const FooterLink = styled(Link)(({ theme, darkMode }) => ({
+  color: darkMode ? "#fff" : "#333",
+  textDecoration: "none",
+  transition: "color 0.2s ease",
+  position: "relative",
+  "&::after": {
+    content: '""',
+    position: "absolute",
+    bottom: -2,
+    left: 0,
+    width: 0,
+    height: "2px",
+    background: "#7c4dff",
+    transition: "width 0.3s ease"
+  },
+  "&:hover::after": {
+    width: "100%"
+  },
+  "&:hover": {
+    color: "#7c4dff"
+  }
+}));
+
+const ContactItem = styled(Box)(({ theme }) => ({
+  display: "flex",
+  alignItems: "center",
+  marginBottom: theme.spacing(2),
+  transition: "transform 0.2s ease",
+  "&:hover": {
+    transform: "translateX(5px)"
+  }
+}));
+
+const SmartFooter = () => {
+  const theme = useTheme();
+
 
   return (
-    <Box sx={{ width: "100%", position: 'fixed', bottom: 0, left: 0, backgroundColor: 'white', boxShadow: 3 , height:50}}>
-      <BottomNavigation
-        value={value}
-        onChange={handleChange}
-      >
-        <BottomNavigationAction
-          label="Recents"
-          value="recents"
-          icon={<RestoreIcon />}
-        />
-        <BottomNavigationAction
-          label="Favorites"
-          value="favorites"
-          icon={<FavoriteIcon />}
-        />
-        <BottomNavigationAction
-          label="Nearby"
-          value="nearby"
-          icon={<LocationOnIcon />}
-        />
-        <BottomNavigationAction
-          label="Folder"
-          value="folder"
-          icon={<FolderIcon />}
-        />
-      </BottomNavigation>
-
-      {/* Footer Grid */}
-      <Box sx={{ p: 1 }}>
-        <Grid container spacing={2} justifyContent="space-around">
-          <Grid item>
-            <BottomNavigationAction
-              label="Home"
-              icon={<HomeIcon />}
-              onClick={() => console.log('Home Clicked')} // Handle navigation
-            />
+    <StyledFooter >
+      <Container maxWidth="lg">
+        <Grid container spacing={4}>
+          <Grid item xs={12} sm={6} md={3}>
+            <Typography variant="h6" gutterBottom sx={{ fontWeight: "bold" }}>
+              About Us
+            </Typography>
+            <Typography variant="body2" sx={{ mb: 2 }}>
+              We are dedicated to providing innovative solutions and exceptional services to our valued customers worldwide.
+            </Typography>
+            {/* <Box sx={{ display: "flex", alignItems: "center" }}>
+              <Typography variant="body2" sx={{ mr: 1 }}>
+                Dark Mode
+              </Typography>
+              <Switch
+                checked={darkMode}
+                onChange={handleDarkModeToggle}
+                color="primary"
+                inputProps={{ "aria-label": "toggle dark mode" }}
+              />
+            </Box> */}
           </Grid>
-          <Grid item>
-            <BottomNavigationAction
-              label="About Us"
-              icon={<InfoIcon />}
-              onClick={() => console.log('About Us Clicked')} // Handle navigation
-            />
+
+          <Grid item xs={12} sm={6} md={3}>
+            <Typography variant="h6" gutterBottom sx={{ fontWeight: "bold" }}>
+              Quick Links
+            </Typography>
+            <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
+              <FooterLink href="#" >Home</FooterLink>
+              <FooterLink href="#" >Services</FooterLink>
+              <FooterLink href="#" >Products</FooterLink>
+              <FooterLink href="#" >Contact</FooterLink>
+            </Box>
+          </Grid>
+
+          <Grid item xs={12} sm={6} md={3}>
+            <Typography variant="h6" gutterBottom sx={{ fontWeight: "bold" }}>
+              Contact Info
+            </Typography>
+            <ContactItem>
+              <MdLocationOn style={{ marginRight: "8px" }} />
+              <Typography variant="body2">123 Business Street, NY 10001</Typography>
+            </ContactItem>
+            <ContactItem>
+              <MdPhone style={{ marginRight: "8px" }} />
+              <Typography variant="body2">+1 234 567 8900</Typography>
+            </ContactItem>
+            <ContactItem>
+              <MdEmail style={{ marginRight: "8px" }} />
+              <Typography variant="body2">contact@example.com</Typography>
+            </ContactItem>
+          </Grid>
+
+          <Grid item xs={12} sm={6} md={3}>
+            <Typography variant="h6" gutterBottom sx={{ fontWeight: "bold" }}>
+              Follow Us
+            </Typography>
+            <Box>
+              <Tooltip title="Facebook" arrow>
+                <SocialButton aria-label="facebook" >
+                  <FaFacebook />
+                </SocialButton>
+              </Tooltip>
+              <Tooltip title="Twitter" arrow>
+                <SocialButton aria-label="twitter" >
+                  <FaTwitter />
+                </SocialButton>
+              </Tooltip>
+              <Tooltip title="Instagram" arrow>
+                <SocialButton aria-label="instagram" >
+                  <FaInstagram />
+                </SocialButton>
+              </Tooltip>
+              <Tooltip title="LinkedIn" arrow>
+                <SocialButton aria-label="linkedin" >
+                  <FaLinkedin />
+                </SocialButton>
+              </Tooltip>
+            </Box>
           </Grid>
         </Grid>
-        {/* Footer Text */}
-        <Box sx={{ p: 2, textAlign: 'center'  ,}}>
-        <Typography variant="body2" color="text.secondary">
-            Your Footer Text Here
+
+        <Box sx={{ mt: 4, pt: 2, borderTop: "1px solid", borderColor: "rgba(0,0,0,0.1)" }}>
+          <Typography variant="body2" align="center">
+            © {new Date().getFullYear()} Your Company Name. All rights reserved.
           </Typography>
         </Box>
-      </Box>
-    </Box>
+      </Container>
+    </StyledFooter>
   );
-}
+};
+
+export default SmartFooter;

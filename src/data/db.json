@@ -1,0 +1,106 @@
+{
+  "newCarouselSection": [
+    {
+      "id": "cc8d",
+      "newCarouselSection": "Podcasts"
+    },
+    {
+      "id": "e9bd",
+      "newCarouselSection": "Communities"
+    },
+    {
+      "id": "c70c",
+      "newCarouselSection": "Home"
+    }
+  ],
+  "carouselData": [
+    {
+      "id": "b55e",
+      "selectCarouselSection": "Podcasts",
+      "carouselState": "New",
+      "carouselTitle": "codecast bodcast01",
+      "carouselDes": "codecast description",
+      "carouselImg": "https://img.youtube.com/vi/a5gx5i82S40/maxresdefault.jpg"
+    },
+    {
+      "id": "a0e1",
+      "selectCarouselSection": "Podcasts",
+      "carouselState": "New",
+      "carouselTitle": "codecast bodcast02",
+      "carouselDes": "codecast description",
+      "carouselImg": "https://img.youtube.com/vi/FoSovbdgSww/sddefault.jpg"
+    },
+    {
+      "id": "6f60",
+      "selectCarouselSection": "Podcasts",
+      "carouselState": "New",
+      "carouselTitle": "codecast bodcast03",
+      "carouselDes": "codecast description",
+      "carouselImg": "https://img.youtube.com/vi/0THXhAi61o0/sddefault.jpg"
+    },
+    {
+      "id": "9158",
+      "selectCarouselSection": "Podcasts",
+      "carouselState": "New",
+      "carouselTitle": "codecast bodcast04",
+      "carouselDes": "codecast description",
+      "carouselImg": "https://img.youtube.com/vi/a5gx5i82S40/maxresdefault.jpg"
+    },
+    {
+      "id": "a25d",
+      "selectCarouselSection": "Podcasts",
+      "carouselState": "New",
+      "carouselTitle": "codecast bodcast05",
+      "carouselDes": "codecast description",
+      "carouselImg": "https://img.youtube.com/vi/q8odl57WQYE/sddefault.jpg"
+    },
+    {
+      "id": "b371",
+      "selectCarouselSection": "Home",
+      "carouselState": "New",
+      "carouselTitle": "tir",
+      "carouselDes": "des",
+      "carouselImg": "https://res.cloudinary.com/dlnxfhrfs/image/upload/v1738940513/pexels-divinetechygirl-1181263_effxqn.jpg"
+    },
+    {
+      "id": "7b84",
+      "selectCarouselSection": "Home",
+      "carouselState": "New",
+      "carouselTitle": "tir",
+      "carouselDes": "des",
+      "carouselImg": "https://res.cloudinary.com/dlnxfhrfs/image/upload/v1738940512/pexels-thisisengineering-3861972_ti61m5.jpg"
+    },
+    {
+      "id": "2e1b",
+      "selectCarouselSection": "Home",
+      "carouselState": "New",
+      "carouselTitle": "tir",
+      "carouselDes": "des",
+      "carouselImg": "https://res.cloudinary.com/dlnxfhrfs/image/upload/v1738940512/pexels-vlada-karpovich-4050291_znecjp.jpg"
+    },
+    {
+      "id": "38e8",
+      "selectCarouselSection": "Home",
+      "carouselState": "New",
+      "carouselTitle": "tir",
+      "carouselDes": "des",
+      "carouselImg": "https://res.cloudinary.com/dlnxfhrfs/image/upload/v1738940512/pexels-goumbik-574071_zwtfgh.jpg"
+    }
+  ],
+  "basicinfo": [
+    {
+      "id": "72a3",
+      "startHereTitle": "m",
+      "startHereDescription": "k",
+      "startHereImportanceTitle": "m",
+      "startHereImportanceDescription": "m"
+    },
+    {
+      "id": "c26e",
+      "startHereTitle": "n",
+      "startHereDescription": "j",
+      "startHereImportanceTitle": "n",
+      "startHereImportanceDescription": "n"
+    }
+  ]
+}

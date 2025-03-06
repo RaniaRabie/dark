@@ -30,7 +30,6 @@ import { useLocation, useNavigate, useParams } from "react-router-dom";
 import axios from "axios";
 import { useEdgesState, useNodesState } from "@xyflow/react";
 import { RoadmapContext } from "./RoadmapContext";
-import { Category, Description } from "@mui/icons-material";
 
 export default function RoadmapDetails() {
   const {
@@ -124,20 +123,6 @@ export default function RoadmapDetails() {
     setErrors(newErrors);
     return newErrors;
   };
-
-  // const handleCreateClick = () => {
-  //   setTouched({ category: true, name: true, description: true, image: true });
-  //   const hasErrors = validateFields();
-
-  //   if (
-  //     !hasErrors.category &&
-  //     !hasErrors.name &&
-  //     !hasErrors.description &&
-  //     !hasErrors.image
-  //   ) {
-  //     navigate("/dashboard/create");
-  //   }
-  // };
 
   const handleCreateClick = async () => {
     setTouched({ category: true, name: true, description: true, image: true });
@@ -249,6 +234,7 @@ export default function RoadmapDetails() {
   const isCreatePath = location.pathname === "/dashboard/details";
   const isUpdatePath = location.pathname.startsWith("/dashboard/details/");
   const theme = useTheme();
+  
   return (
     <Box sx={{ width: "80%", m: "auto", mt: 2 }}>
       <Stack direction={"column"} alignItems={"center"} sx={{ my: 2 }}>

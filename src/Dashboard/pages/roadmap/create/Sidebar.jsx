@@ -25,6 +25,7 @@ export default function Sidebar() {
   const onDragStart = (event, nodeType) => {
     setType(nodeType);
     event.dataTransfer.effectAllowed = "move";
+    event.dataTransfer.setData("application/reactflow", nodeType); // Set type here
   };
 
   // Prevent text dragging
@@ -46,16 +47,14 @@ export default function Sidebar() {
       margin: "8px 0",
       borderRadius: "4px",
       cursor: "grab",
-      backgroundColor:
-        theme.palette.mode === "dark" ? "#2e2e2e" : "#f0f0f0", // Different background for nodes
+      backgroundColor: theme.palette.mode === "dark" ? "#2e2e2e" : "#f0f0f0", // Different background for nodes
       color: theme.palette.text.primary,
     },
     tips: {
       marginTop: "16px",
       padding: "8px",
       borderRadius: "4px",
-      backgroundColor:
-        theme.palette.mode === "dark" ? "#333" : "#fafafa", // Tip box background
+      backgroundColor: theme.palette.mode === "dark" ? "#333" : "#fafafa", // Tip box background
       color: theme.palette.text.primary,
     },
     tipsIcon: {
@@ -96,12 +95,33 @@ export default function Sidebar() {
         Output Node
       </div>
 
+      <div
+        className="dndnode output"
+        draggable
+        onDragStart={(event) => {
+          onDragStart(event, "fourhandles")
+        }}
+        style={styles.node}
+      >
+        Four Handles Node
+      </div>
+
+      <div
+        className="dndnode input"
+        onDragStart={(event) => onDragStart(event, "custom")}
+        draggable
+      >
+        Custom Node
+      </div>
+
       <Box style={styles.tips}>
         <Typography>
           <TipsAndUpdatesIcon fontSize="small" sx={styles.tipsIcon} /> Quick
           Tips:
         </Typography>
-        <div>- To delete an edge or a node, select it and click "backspace".</div>
+        <div>
+          - To delete an edge or a node, select it and click "backspace".
+        </div>
         <div>
           - To change node properties, click on it and toggle between properties
           and links.

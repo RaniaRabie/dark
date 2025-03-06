@@ -16,6 +16,9 @@ import TopBar from "./components/TopBar";
 import { Outlet } from "react-router-dom";
 import { Box, CssBaseline, ThemeProvider } from "@mui/material";
 import { lightTheme, darkTheme } from "../theme";
+import SmartFooter from "./components/Footer";
+import JobPortalHeader from "./components/Header";
+
 export default function DevRootsOutlet() {
   const [open, setOpen] = useState(false);
 
@@ -43,14 +46,22 @@ export default function DevRootsOutlet() {
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
-      <TopBar
+
+      {/* <TopBar
+        // @ts-ignore
         open={open}
         handleDrawerOpen={handleDrawerOpen}
         setMode={handleToggleMode} // Pass the new function to TopBar
-      />
-      <Box sx={{mt:"64px"}}>
+      /> */}
+
+      <JobPortalHeader setMode={handleToggleMode}/>
+
+      <Box>
         <Outlet />
       </Box>
+
+      <SmartFooter/>
+
     </ThemeProvider>
   );
 }
