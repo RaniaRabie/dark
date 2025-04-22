@@ -28,6 +28,7 @@ import {
   Snackbar,
 } from "@mui/material";
 import axios from "axios";
+import { useAuth } from "context/AuthContext";
 import React, { useEffect, useState } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 
@@ -59,6 +60,7 @@ export default function AddField() {
 
   const [openSnackbar, setOpenSnackbar] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
+  const { token } = useAuth();
 
   const handleAddFieldClick = async () => {
     setTouched({ field: true });
@@ -69,6 +71,12 @@ export default function AddField() {
           "https://careerguidance.runasp.net/api/Dashboard/AddRoadmapCategory",
           {
             roadmapCategory: field,
+          },
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+              "Content-Type": "application/json",
+            },
           }
         );
         setField("");
@@ -116,6 +124,12 @@ export default function AddField() {
           `https://careerguidance.runasp.net/api/Dashboard/UpdateRoadmapCategory/${id}`,
           {
             roadmapCategory: field,
+          },
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+              "Content-Type": "application/json",
+            },
           }
         );
         setField("");

@@ -8,10 +8,11 @@
     REACT,
     MUI,
     react-router-dom, 
-    axios
+    axiosو
+    AuthContext
   }
 - Contributors: rania rabie
-- Last Modified Date: 10/12/2024
+- Last Modified Date: 4/22/2025
 - Description : Create New Carousel
 */
 
@@ -20,7 +21,6 @@ import TextField from "@mui/material/TextField";
 import {
   Box,
   Button,
-  Stack,
   MenuItem,
   Select,
   FormControl,
@@ -31,6 +31,16 @@ import {
 } from "@mui/material";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import axios from "axios";
+import { useAuth } from "context/AuthContext";
+
+const buttonStyle ={
+    width: "180px",
+    display: "block",
+    m: "auto",
+    my: 2,
+    backgroundColor: "#ee6c4d",
+    textTransform: "capitalize"
+}
 
 export default function NewCarousel() {
   const [selectCarouselSection, setSelectCarouselSection] = useState("");
@@ -38,73 +48,111 @@ export default function NewCarousel() {
   const [carouselTitle, setCarouselTitle] = useState("");
   const [carouselDes, setCarouselDes] = useState("");
   const [carouselImg, setCarouselImg] = useState("");
+  const [carouselUrl, setCarouselUrl] = useState("");
 
-  const [createdCarouselSections, setCeatedCarouselSections] = useState([]);
+  const [createdCarouselSections, setCreatedCarouselSections] = useState([]);
 
   const navigate = useNavigate();
   const location = useLocation();
   const { id } = useParams();
   const [errors, setErrors] = useState({
     selectCarouselSection: false,
-    carouselState: false,
+    // carouselState: false,
     carouselTitle: false,
     carouselDes: false,
     carouselImg: false,
+    carouselUrl: false,
   });
   const [touched, setTouched] = useState({
     selectCarouselSection: false,
-    carouselState: false,
+    // carouselState: false,
     carouselTitle: false,
     carouselDes: false,
     carouselImg: false,
+    carouselUrl: false,
   });
 
   const [openSnackbar, setOpenSnackbar] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
 
+  const { token } = useAuth();
+
   useEffect(() => {
     // Fetch Carousel Sections from the server
     axios
-      .get("http://localhost:3100/newCarouselSection")
+      .get(
+        "https://careerguidance.runasp.net/api/Dashboard/GetAllCarouselSection"
+      )
       .then((response) => {
-        setCeatedCarouselSections(response.data); // Store fetched categories in state
+        console.log("🎯 Carousel Sections fetched:", response.data); // <-- Log the response
+        setCreatedCarouselSections(response.data); // Store fetched categories in state
       })
       .catch((error) => {
-        console.error("Error fetching Carousel Sections:", error);
+        console.error("❌ Error fetching Carousel Sections:", error);
       });
   }, []);
 
-  //   const updateRoadmap = async () => {
-  //     try {
+  const updateCarousel = async () => {
+    try {
+      // Ensure `id` and `updatedCarouselData` are defined
+      // if (!id) {
+      //   console.error("No ID provided for update.");
+      //   return;
+      // }
 
-  //       await axios.put(
-  //         `https://careerguidance.runasp.net/api/Dashboard/Update/${id}`,
-  //       );
+      const updatedCarouselData = {
+        carouselSection: selectCarouselSection,
+        carouselState,
+        carouselTitle,
+        carouselDes,
+        carouselImg,
+        carouselUrl,
+      };
+      console.log("Sending data:", updatedCarouselData)
 
-  //       console.log("Roadmap updated successfully.");
-  //     } catch (error) {
-  //       console.error("Error updating roadmap:", error);
-  //       if (
-  //         (error.response && error.response.status === 400) ||
-  //         (error.response && error.response.status === 409) ||
-  //         (error.response && error.response.status === 401)
-  //       ) {
-  //         const errorMessage = error.response.data.errors[1];
-  //         setErrorMessage(errorMessage);
-  //       } else {
-  //         setErrorMessage("An unexpected error occurred.");
-  //       }
-  //       setOpenSnackbar(true);
-  //     }
-  //   };
+      // Make the PUT request with data
+      await axios.put(
+        `https://careerguidance.runasp.net/api/Dashboard/UpdateDetailsCarouselSection/${id}`,
+        updatedCarouselData,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      console.log("Carousel updated successfully.");
+      navigate("/dashboard/allCarousel");
+    } catch (error) {
+      console.error("Error updating carousel:", error);
+
+      if (error.response) {
+        const status = error.response.status;
+        const errorMessage =
+          error.response.data?.errors?.[1] || "An unexpected error occurred.";
+
+        if (status === 400 || status === 409 || status === 401) {
+          setErrorMessage(errorMessage);
+        } else {
+          setErrorMessage("An unexpected error occurred.");
+        }
+      } else {
+        setErrorMessage("Network error or server unreachable.");
+      }
+
+      setOpenSnackbar(true);
+    }
+  };
 
   const validateFields = () => {
     const newErrors = {
       selectCarouselSection: selectCarouselSection === "",
-      carouselState: carouselState === "",
+      // carouselState: carouselState === "",
       carouselTitle: carouselTitle === "",
       carouselDes: carouselDes === "",
       carouselImg: carouselImg === "",
+      carouselUrl: carouselUrl === "",
     };
 
     setErrors(newErrors);
@@ -114,27 +162,44 @@ export default function NewCarousel() {
   const handleCreateClick = async () => {
     setTouched({
       selectCarouselSection: true,
-      carouselState: true,
+      // carouselState: true,
       carouselTitle: true,
       carouselDes: true,
       carouselImg: true,
+      carouselUrl: true,
     });
     const hasErrors = validateFields();
 
     if (
-      !hasErrors.carouselState &&
+      !hasErrors.selectCarouselSection &&
+      // !hasErrors.carouselState &&
       !hasErrors.carouselTitle &&
       !hasErrors.carouselDes &&
-      !hasErrors.carouselImg
+      !hasErrors.carouselImg &&
+      !hasErrors.carouselUrl
     ) {
+      const requestBody = {
+        carouselSection: selectCarouselSection,
+        carouselState: carouselState,
+        carouselTitle: carouselTitle,
+        carouselDes: carouselDes,
+        carouselImg: carouselImg,
+        carouselUrl: carouselUrl,
+      };
+
+      console.log("🚀 Request body being sent to backend:", requestBody);
       try {
-        await axios.post("http://localhost:3100/carouselData", {
-          selectCarouselSection: selectCarouselSection,
-          carouselState: carouselState,
-          carouselTitle: carouselTitle,
-          carouselDes: carouselDes,
-          carouselImg: carouselImg,
-        });
+        await axios.post(
+          "https://careerguidance.runasp.net/api/Dashboard/AddDetailsCarouselSection",
+          requestBody,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+              "Content-Type": "application/json",
+            },
+          }
+        );
+        navigate("/dashboard/allCarousel")
       } catch (error) {
         console.error("Failed to add Carousel Section data:", error);
         if (
@@ -179,33 +244,74 @@ export default function NewCarousel() {
     setCarouselImg(e.target.value);
     setErrors((prev) => ({ ...prev, carouselImg: e.target.value === "" }));
   };
+  
+  const handleCarouselUrlChange = (e) => {
+    setCarouselUrl(e.target.value);
+    setErrors((prev) => ({ ...prev, carouselUrl: e.target.value === "" }));
+  };
 
-  const handleContinueClick = async () => {
+  const handleUpdateCarousel = async () => {
     setTouched({
       selectCarouselSection: true,
-      carouselState: true,
+      // carouselState: true,
       carouselTitle: true,
       carouselDes: true,
       carouselImg: true,
+      carouselUrl: true,
     });
     const hasErrors = validateFields();
-
     if (
-      !hasErrors.category &&
-      !hasErrors.name &&
-      !hasErrors.description &&
-      !hasErrors.image
+      !hasErrors.selectCarouselSection &&
+      // !hasErrors.carouselState &&
+      !hasErrors.carouselTitle &&
+      !hasErrors.carouselDes &&
+      !hasErrors.carouselImg &&
+      !hasErrors.carouselUrl
     ) {
-      console.log("done");
+      await updateCarousel();
     }
   };
+
+  useEffect(() => {
+    setSelectCarouselSection("");
+    setCarouselState("");
+    setCarouselTitle("");
+    setCarouselDes("");
+    setCarouselImg("");
+    setCarouselUrl("");
+    if (location.state) {
+      const {
+        carouselSection,
+        carouselState,
+        carouselTitle,
+        carouselDes,
+        carouselImg,
+        carouselUrl,
+      } = location.state;
+
+      setSelectCarouselSection(carouselSection || "");
+      setCarouselState(carouselState || "");
+      setCarouselTitle(carouselTitle || "");
+      setCarouselDes(carouselDes || "");
+      setCarouselImg(carouselImg || "");
+      setCarouselUrl(carouselUrl || "");
+    }
+  }, [
+    location.state,
+    setSelectCarouselSection,
+    setCarouselState,
+    setCarouselTitle,
+    setCarouselDes,
+    setCarouselImg,
+    setCarouselUrl,
+  ]);
 
   const handleCloseSnackbar = () => {
     setOpenSnackbar(false); // Close the Snackbar
   };
 
-  //   const isCreatePath = location.pathname === "/dashboard/details";
-  //   const isUpdatePath = location.pathname.startsWith("/dashboard/details/");
+  const isCreatePath = location.pathname === "/dashboard/newCarousel";
+  const isUpdatePath = location.pathname.startsWith("/dashboard/newCarousel/");
 
   const theme = useTheme();
   return (
@@ -274,10 +380,10 @@ export default function NewCarousel() {
           <br />
           <FormControl
             variant="outlined"
-            error={errors.carouselState}
+            // error={errors.carouselState}
             sx={{ mt: 1 }}
           >
-            <Tooltip
+            {/* <Tooltip
               title={
                 touched.carouselState && errors.carouselState
                   ? "This field is required."
@@ -286,7 +392,7 @@ export default function NewCarousel() {
               arrow
               open={touched.carouselState && errors.carouselState}
               disableHoverListener={!errors.carouselState}
-            >
+            > */}
               <span>
                 <Select
                   labelId="roadmap-category-label"
@@ -307,7 +413,7 @@ export default function NewCarousel() {
                   <MenuItem value="Updated">Updated</MenuItem>
                 </Select>
               </span>
-            </Tooltip>
+            {/* </Tooltip> */}
           </FormControl>
         </Box>
 
@@ -357,7 +463,7 @@ export default function NewCarousel() {
           </FormControl>
         </Box>
 
-        {/* Roadmap Description */}
+        {/* Carousel Description */}
         <Box sx={{ my: 2 }}>
           <label className="roadmapName">Carousel Description</label>
           <br />
@@ -459,31 +565,69 @@ export default function NewCarousel() {
           </Box>
         )}
 
-        {/* Buttons */}
-        {/* {isCreatePath && ( */}
-        <Button
-          variant="contained"
-          onClick={handleCreateClick}
-          sx={{
-            width: "200px",
-            display: "block",
-            m: "auto",
-            my: 2,
-            backgroundColor: "#ee6c4d",
-          }}
-        >
-          Create
-        </Button>
-        {/* )} */}
-        {/* {isUpdatePath && (
-          <Button
-            onClick={handleContinueClick}
-            variant="contained"
-            sx={{ my: 2, cursor: "pointer" }}
+        <Box>
+          <label className="roadmapImageUrl">Carousel URL</label>
+          <br />
+          <FormControl
+            variant="outlined"
+            error={errors.carouselUrl}
+            sx={{ mt: 1 }}
           >
-            Continue
+            <Tooltip
+              title={
+                touched.carouselUrl && errors.carouselUrl
+                  ? "This field is required."
+                  : ""
+              }
+              arrow
+              open={touched.carouselUrl && errors.carouselUrl}
+              disableHoverListener={!errors.carouselUrl}
+            >
+              <span>
+                <TextField
+                  id="outlined-image-url"
+                  variant="outlined"
+                  placeholder="Paste image URL here"
+                  value={carouselUrl}
+                  onChange={handleCarouselUrlChange}
+                  error={errors.carouselUrl}
+                  sx={{
+                    my: 1,
+                    "& .MuiOutlinedInput-root": {
+                      backgroundColor:
+                        theme.palette.mode === "dark" ? "#262626" : "#D9D9D9",
+                      color: theme.palette.text.primary,
+                      border: "none",
+                      width: "350px",
+                      height: "45px",
+                      borderRadius: "10px",
+                      fontSize: "18px",
+                    },
+                  }}
+                />
+              </span>
+            </Tooltip>
+          </FormControl>
+        </Box>
+
+        {/* Buttons */}
+        {isCreatePath && (
+          <Button
+            variant="contained"
+            onClick={handleCreateClick}
+            sx={buttonStyle}
+          >
+            Create
           </Button>
-        )} */}
+        )}
+        {isUpdatePath && (
+          <Button
+            onClick={handleUpdateCarousel}
+            variant="contained"
+            sx={buttonStyle}          >
+            Update
+          </Button>
+        )}
       </Box>
       <Snackbar
         open={openSnackbar}

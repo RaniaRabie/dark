@@ -43,10 +43,10 @@ import {
 } from "react-router-dom";
 
 import DevRootsOutlet from "./DevRoots/DevRootsOutlet";
-import RoadmapList from "./DevRoots/Home/RoadmapList";
+import RoadmapList from "./DevRoots/pages/Allroadmaps/RoadmapList";
 import ForgotPassword from "./DevRoots/pages/login/Forget Password/ForgotPassword";
 import SetNewPassword from "./DevRoots/pages/login/Forget Password/SetNewPassword";
-import Roadmap from "./DevRoots/roadmap/Roadmap";
+import Roadmap from "./DevRoots/pages/roadmap/Roadmap";
 import DashboardOutlet from "./Dashboard/DashboardOutlet";
 import Dashboard from "./Dashboard/pages/dashboard/Dashboard";
 import BarChart from "./Dashboard/pages/Analystics/BarChart";
@@ -66,11 +66,15 @@ import Regesteration from "./DevRoots/pages/login/Regesteration";
 import ProtectedRoute from "./ProtectedRoute";
 import Unauthorized from "./error/Unauthorized";
 import NotFound from "./error/NotFound";
-import StepperUi from "./Dashboard/pages/AddStartHereContent/StepperUi";
 // @ts-ignore
 import NewCarouselSection from "./Dashboard/pages/Carousel/NewCarouselSection";
 import NewCarousel from "Dashboard/pages/Carousel/NewCarousel";
 import Home from "./DevRoots/Home/Home";
+import StartHere from "./DevRoots/pages/StartHere/StartHere";
+import AllCarousel from "./Dashboard/pages/Carousel/AllCarousel";
+import Settingg from "./DevRoots/pages/userProfile/Settingg";
+import SocialMedia from "./DevRoots/pages/userProfile/SocialMedia";
+import UpdateUser from "./DevRoots/pages/userProfile/UpdateUser";
 
 function App() {
   
@@ -84,6 +88,11 @@ function App() {
         <Route path="ForgotPassword" element={<ForgotPassword />} />
         <Route path="SetNewPassword" element={<SetNewPassword />} />
         <Route path="roadmap/:id" element={<Roadmap />} />
+        <Route path="startHere" element={<StartHere />} />
+        <Route path="/Settingg" element={<Settingg />} />
+        <Route path="/SocialMedia" element={<SocialMedia />} />
+        <Route path="/updateUser" element={<UpdateUser />}/>
+
         <Route path="/unauthorized" element={<Unauthorized />} />
       </Route>
 
@@ -103,7 +112,7 @@ function App() {
         <Route path="barchart" element={<BarChart />} />
         <Route path="allusers" element={<AllUsers />} />
         <Route path="addnewuser" element={<AddNewUser />} />
-        <Route path="profile" element={<Profile />} />
+        <Route path="profile/:id" element={<Profile />} />
         <Route path="faq" element={<FAQ />} />
         <Route path="setting" element={<Setting />} />
         <Route path="allroadmaps" element={<AllRoadmaps />} />
@@ -114,9 +123,10 @@ function App() {
         <Route path="allfields" element={<AllFields />} />
         <Route path="addfield" element={<AddField />} />
         <Route path="addfield/:id" element={<AddField />} />
-        <Route path="addStartHereContent" element={<StepperUi />} />
         <Route path="newCarouselSection" element={<NewCarouselSection />} />
         <Route path="newCarousel" element={<NewCarousel />} />
+        <Route path="allCarousel" element={<AllCarousel />} />
+        <Route path="newCarousel/:id" element={<NewCarousel />} />
         <Route path="*" element={<NotFound />} />
 
       </Route>

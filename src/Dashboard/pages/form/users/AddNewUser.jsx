@@ -9,7 +9,7 @@
   MUI ,
   }
 - Contributors: shrouk ahmed , rania rabie,nourhan khaled,mohamed khaled
-- Last Modified Date: 10/12/2024
+- Last Modified Date: 1/11/2024
 - Description : Add new user Form
 */
 import { useEffect, useState } from "react";
@@ -44,7 +44,6 @@ const AddNewUser = () => {
   const [usernameTooltipOpen, setUsernameTooltipOpen] = useState(false); // State for username tooltip
   const [openSnackbar, setOpenSnackbar] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-
 
   const validateUsername = (value) => {
     const usernamePattern = /^(?=.*[a-zA-Z]{3})(?=.*[0-9]{2})[a-zA-Z0-9]+$/;
@@ -85,7 +84,8 @@ const AddNewUser = () => {
     setAddEmail(newEmail);
 
     // Validate email and set error state
-    const emailPattern = /^(?=.{16,})[a-zA-Z0-9._%+-]{6,}@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+    const emailPattern =
+      /^(?=.{16,})[a-zA-Z0-9._%+-]{6,}@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
     const isValid = emailPattern.test(newEmail);
     setEmailError(!isValid);
     setEmailTooltipOpen(!isValid && newEmail.length > 0);
@@ -93,7 +93,8 @@ const AddNewUser = () => {
 
   // Show tooltip on focus; hide if valid email
   const handleEmailFocus = () => {
-    const emailPattern = /^(?=.{16,})[a-zA-Z0-9._%+-]{6,}@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+    const emailPattern =
+      /^(?=.{16,})[a-zA-Z0-9._%+-]{6,}@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
     const isValid = emailPattern.test(addEmail); // Check validity of the current email
     setEmailTooltipOpen(!isValid); // Show tooltip if the email is invalid
   };
@@ -130,7 +131,7 @@ const AddNewUser = () => {
   const handleToggleShowPassword = () => setShowPassword(!showPassword);
 
   /////////////////////////////////////////////////
-const navigate = useNavigate() ;
+  const navigate = useNavigate();
   const [role, setRole] = useState("");
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState("");
@@ -149,7 +150,8 @@ const navigate = useNavigate() ;
       setUsernameTooltipOpen(false);
     }
     // Validate email
-    const emailPattern = /^(?=.{16,})[a-zA-Z0-9._%+-]{6,}@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+    const emailPattern =
+      /^(?=.{16,})[a-zA-Z0-9._%+-]{6,}@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
     const isValidEmail = emailPattern.test(addEmail);
 
     if (!isValidEmail) {
@@ -184,8 +186,22 @@ const navigate = useNavigate() ;
     if (!isValidUsername || !isValidEmail || !isPasswordValid) {
       return;
     }
-
+    const refreshAccessToken = async () => {
+      const storedRefresh = localStorage.getItem("refreshToken");
+      if (!storedRefresh) throw new Error("No refresh token");
+      const resp = await axios.post(
+        "https://careerguidance.runasp.net/Auth/refresh",
+        { refreshToken: storedRefresh }
+      );
+      const { accessToken, refreshToken: newRefresh } = resp.data;
+      localStorage.setItem("accessToken", accessToken);
+      localStorage.setItem("refreshToken", newRefresh);
+      return accessToken;
+    };
+  
     try {
+      const token = localStorage.getItem("accessToken");
+      if (!token) throw new Error("No access token");
       const response = await axios.post(
         "https://careerguidance.runasp.net/api/Dashboard/AddUser",
         {
@@ -198,28 +214,28 @@ const navigate = useNavigate() ;
         {
           headers: {
             "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
           },
         }
       );
 
       setTimeout(() => {
+        if (response.status === 200) {
+          // Show success snackbar
+          setSnackbarMessage("User added successfully!");
+          setSnackbarSeverity("success");
+          setSnackbarOpen(true);
+          navigate("/dashboard/allusers");
 
-      if (response.status === 200) {
-        // Show success snackbar
-        setSnackbarMessage("User added successfully!");
-        setSnackbarSeverity("success");
-        setSnackbarOpen(true);
-        navigate("/dashboard/allusers")
+          // Reset input fields
+          setUsername("");
+          setAddEmail("");
+          setPassword("");
+          setRole("");
+        }
+        setIsSubmitting(false);
+      }, 2000); // Simulate API delay
 
-        // Reset input fields
-        setUsername("");
-        setAddEmail("");
-        setPassword("");
-        setRole("");
-      }
-      setIsSubmitting(false);
-    }, 2000); // Simulate API delay 
-  
       setTimeout(() => {
         setSnackbarOpen(false);
       }, 3000);
@@ -281,7 +297,7 @@ const navigate = useNavigate() ;
 
     try {
       const response = await axios.post(
-        "https://careerguidance.runasp.net/Auth/RefreshToken",
+        "https://careerguidance.runasp.net/Auth/refresh",
         {
           refreshToken: refreshToken,
         }
@@ -703,7 +719,7 @@ const navigate = useNavigate() ;
                 }}
               >
                 Add User
-              {/* {isSubmitting ? "Adding User..." : "Add User"} */}
+                {/* {isSubmitting ? "Adding User..." : "Add User"} */}
               </Button>
               <Snackbar
                 open={snackbarOpen}

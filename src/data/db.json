@@ -11,25 +11,21 @@
     {
       "id": "c70c",
       "newCarouselSection": "Home"
+    },
+    {
+      "newCarouselSection": "testagainnnnnnnnnnnnn",
+      "id": "d0a4"
+    },
+    {
+      "id": "cd39",
+      "newCarouselSection": "nnnnnnnnnnnnn"
+    },
+    {
+      "newCarouselSection": "hhhhhhhhhhhh",
+      "id": "4cbb"
     }
   ],
   "carouselData": [
-    {
-      "id": "b55e",
-      "selectCarouselSection": "Podcasts",
-      "carouselState": "New",
-      "carouselTitle": "codecast bodcast01",
-      "carouselDes": "codecast description",
-      "carouselImg": "https://img.youtube.com/vi/a5gx5i82S40/maxresdefault.jpg"
-    },
-    {
-      "id": "a0e1",
-      "selectCarouselSection": "Podcasts",
-      "carouselState": "New",
-      "carouselTitle": "codecast bodcast02",
-      "carouselDes": "codecast description",
-      "carouselImg": "https://img.youtube.com/vi/FoSovbdgSww/sddefault.jpg"
-    },
     {
       "id": "6f60",
       "selectCarouselSection": "Podcasts",
@@ -55,36 +51,13 @@
       "carouselImg": "https://img.youtube.com/vi/q8odl57WQYE/sddefault.jpg"
     },
     {
-      "id": "b371",
-      "selectCarouselSection": "Home",
-      "carouselState": "New",
-      "carouselTitle": "tir",
-      "carouselDes": "des",
-      "carouselImg": "https://res.cloudinary.com/dlnxfhrfs/image/upload/v1738940513/pexels-divinetechygirl-1181263_effxqn.jpg"
-    },
-    {
-      "id": "7b84",
-      "selectCarouselSection": "Home",
-      "carouselState": "New",
-      "carouselTitle": "tir",
-      "carouselDes": "des",
-      "carouselImg": "https://res.cloudinary.com/dlnxfhrfs/image/upload/v1738940512/pexels-thisisengineering-3861972_ti61m5.jpg"
-    },
-    {
-      "id": "2e1b",
-      "selectCarouselSection": "Home",
-      "carouselState": "New",
-      "carouselTitle": "tir",
-      "carouselDes": "des",
-      "carouselImg": "https://res.cloudinary.com/dlnxfhrfs/image/upload/v1738940512/pexels-vlada-karpovich-4050291_znecjp.jpg"
-    },
-    {
-      "id": "38e8",
-      "selectCarouselSection": "Home",
-      "carouselState": "New",
-      "carouselTitle": "tir",
-      "carouselDes": "des",
-      "carouselImg": "https://res.cloudinary.com/dlnxfhrfs/image/upload/v1738940512/pexels-goumbik-574071_zwtfgh.jpg"
+      "id": "68fb",
+      "carouselSection": "testagainnnnnnnnnnnnn",
+      "carouselState": "Trending",
+      "carouselTitle": "bbbbbbbbbbbbbbb",
+      "carouselDes": "nnnnnnnnnnnnnnnnnn",
+      "carouselImg": "https://img.freepik.com/free-vector/frontend-development-concept-website-interface-design-improvement-web-page-programming-coding-testing-it-profession-isolated-flat-vector-illustration_613284-2357.jpg?w=826&t=st=1728322925~exp=1728323525~hmac=a2da51ab436a10143cfd48292929bdb96bbc9a04f42d22bf2c8b50f495388226",
+      "carouselUrl": "https://img.freepik.com/free-vector/frontend-development-concept-website-interface-design-improvement-web-page-programming-coding-testing-it-profession-isolated-flat-vector-illustration_613284-2357.jpg?w=826&t=st=1728322925~exp=1728323525~hmac=a2da51ab436a10143cfd48292929bdb96bbc9a04f42d22bf2c8b50f495388226"
     }
   ],
   "basicinfo": [
@@ -102,5 +75,21 @@
       "startHereImportanceTitle": "n",
       "startHereImportanceDescription": "n"
     }
+  ],
+  "progressBar": [
+    {
+      "UserId": "4d4d4d4",
+      "roadmaps": [
+        {
+          "roadmapId": "9046784f-3377-4ce7-b1dd-e1d911e47dc0",
+          "roadmapName": "",
+          "progressValue": 50,
+          "completedNodes": [
+            "0"
+          ]
+        }
+      ]
+    }
+
   ]
 }

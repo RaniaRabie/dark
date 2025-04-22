@@ -38,6 +38,8 @@ import EditRoadIcon from "@mui/icons-material/EditRoad";
 import LiveHelpIcon from "@mui/icons-material/LiveHelp";
 import "./sideBar.css";
 import CategoryIcon from '@mui/icons-material/Category';
+import ViewCarouselIcon from '@mui/icons-material/ViewCarousel';
+import AddIcon from '@mui/icons-material/Add';
 import { useTheme } from "@mui/material";
 
 
@@ -106,6 +108,24 @@ const routes = [
         path: "/dashboard/allfields",
         name: "All Fields",
         icon: <CategoryIcon />,
+      },
+    ],
+  },
+
+  {
+    path: "/dashboard/roadmap",
+    name: "Carousel",
+    icon: <ViewCarouselIcon />,
+    subRoutes: [
+      {
+        path: "/dashboard/allCarousel",
+        name: "All Carousels",
+        icon: <EditRoadIcon />,
+      },
+      {
+        path: "/dashboard/newCarouselSection",
+        name: "New Section",
+        icon: <AddIcon />,
       },
     ],
   },

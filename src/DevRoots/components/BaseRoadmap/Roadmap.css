@@ -1,0 +1,49 @@
+/*
+- File Name: Roadmap.css
+- Author: rania rabie
+- Date of Creation: 17/9/2024
+- Versions Information: 1.0.0
+- Dependencies:none
+- Contributors: shrouk ahmed , rania rabie,nourhan khaled
+- Last Modified Date: 1/11/2024
+- Description : a css styling for roadmap.js file
+*/
+/* divider color */
+.css-1vuz71u-MuiDivider-root::before,
+.css-1vuz71u-MuiDivider-root::after {
+  background-color: #ee6c4d;
+}
+.roadmap {
+  text-decoration: none;
+  color: black;
+  font-size: 18px;
+}
+
+.all-roadmaps {
+  cursor: pointer;
+  width: 190px;
+  border: 2px solid #ee6c4d;
+  border-radius: 7px;
+  /* padding: 10px; */
+  text-align: center;
+  list-style-type: none;
+}
+
+.roadmapImg {
+  border-radius: 5px 5px 0px 0px;
+}
+
+.css-12gr8am-MuiLinearProgress-root {
+  background-color: #eeeded !important;
+}
+
+.css-hud6bj-MuiLinearProgress-bar1 {
+  background-color: #ee6c4d !important;
+}
+
+/*  */
+
+.css-qywfm8-MuiDivider-wrapper {
+  padding: 0 !important;
+}
+

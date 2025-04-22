@@ -62,6 +62,7 @@ import Sidebar from "./Sidebar";
 import { DnDProvider, useDnD } from "./DnDContext";
 import "./CreateRoadmap.css";
 import FourHandlesNode from "./FourHandlesNode";
+import { useAuth } from "context/AuthContext";
 
 function TabPanel(props) {
   const { children, value, index, ...other } = props;
@@ -110,6 +111,7 @@ const DnDFlow = () => {
   const navigate = useNavigate();
   const [roadmap, setRoadmap] = useState(null);
   const { id } = useParams();
+  const { token } = useAuth();
 
   const nodeTypes = {
     fourhandles: FourHandlesNode,
@@ -424,7 +426,13 @@ const DnDFlow = () => {
       // Post data to the server
       const response = await axios.post(
         "https://careerguidance.runasp.net/api/Dashboard/AddRoadmapData",
-        { roadmapData: JSON.stringify(roadmapData) }
+        { roadmapData: JSON.stringify(roadmapData) },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        }
       );
 
       console.log("Nodes data successfully stored:", response.data);
@@ -521,9 +529,18 @@ const DnDFlow = () => {
 
     // Send the stringified data to the server
     axios
-      .put(`https://careerguidance.runasp.net/api/Dashboard/Update/${id}`, {
-        roadmapData: stringifiedroadmapData,
-      })
+      .put(
+        `https://careerguidance.runasp.net/api/Dashboard/Update/${id}`,
+        {
+          roadmapData: stringifiedroadmapData,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        }
+      )
       .then(() => {
         console.log("Roadmap updated successfully.");
         navigate("/dashboard/allroadmaps"); // Redirect after update

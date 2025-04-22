@@ -30,6 +30,7 @@ import { useLocation, useNavigate, useParams } from "react-router-dom";
 import axios from "axios";
 import { useEdgesState, useNodesState } from "@xyflow/react";
 import { RoadmapContext } from "./RoadmapContext";
+import { useAuth } from "context/AuthContext";
 
 export default function RoadmapDetails() {
   const {
@@ -64,11 +65,14 @@ export default function RoadmapDetails() {
   const [categories, setCategories] = useState([]);
   const [openSnackbar, setOpenSnackbar] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
+  const { token } = useAuth();
 
   useEffect(() => {
     // Fetch categories from the server
     axios
-      .get("https://careerguidance.runasp.net/api/Dashboard/GetAllCategoryInDatabase")
+      .get(
+        "https://careerguidance.runasp.net/api/Dashboard/GetAllCategoryInDatabase"
+      )
       .then((response) => {
         setCategories(response.data); // Store fetched categories in state
       })
@@ -92,6 +96,12 @@ export default function RoadmapDetails() {
         `https://careerguidance.runasp.net/api/Dashboard/Update/${id}`,
         {
           roadmapData: parsedRoadmap,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
         }
       );
 
@@ -128,20 +138,33 @@ export default function RoadmapDetails() {
     setTouched({ category: true, name: true, description: true, image: true });
     const hasErrors = validateFields();
 
-    if (!hasErrors.category && !hasErrors.name && !hasErrors.description && !hasErrors.image) {
-
+    if (
+      !hasErrors.category &&
+      !hasErrors.name &&
+      !hasErrors.description &&
+      !hasErrors.image
+    ) {
       try {
         // Make an API call to check if the roadmap name exists
-        const response = await axios.post("https://careerguidance.runasp.net/api/Dashboard/CheckRoadmapInformation", {
-          category: roadmapCategory,
-          roadmapName: roadmapName, // Assuming `name` is the roadmap name variable
-          discription: roadmapDescription,
-          imageUrl: imageUrl
-        });
+        const response = await axios.post(
+          "https://careerguidance.runasp.net/api/Dashboard/CheckRoadmapInformation",
+          {
+            category: roadmapCategory,
+            roadmapName: roadmapName, // Assuming `name` is the roadmap name variable
+            discription: roadmapDescription,
+            imageUrl: imageUrl,
+          },
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+              "Content-Type": "application/json",
+            },
+          }
+        );
 
         if (response.status === 200) {
           navigate("/dashboard/create");
-          console.log("you can continue")
+          console.log("you can continue");
         }
       } catch (error) {
         console.error("Failed to check roadmap name:", error);
@@ -230,11 +253,10 @@ export default function RoadmapDetails() {
     setOpenSnackbar(false); // Close the Snackbar
   };
 
-
   const isCreatePath = location.pathname === "/dashboard/details";
   const isUpdatePath = location.pathname.startsWith("/dashboard/details/");
   const theme = useTheme();
-  
+
   return (
     <Box sx={{ width: "80%", m: "auto", mt: 2 }}>
       <Stack direction={"column"} alignItems={"center"} sx={{ my: 2 }}>
@@ -446,19 +468,19 @@ export default function RoadmapDetails() {
         )}
       </Stack>
       <Snackbar
-          open={openSnackbar}
-          autoHideDuration={6000}
+        open={openSnackbar}
+        autoHideDuration={6000}
+        onClose={handleCloseSnackbar}
+        anchorOrigin={{ vertical: "top", horizontal: "center" }}
+      >
+        <Alert
           onClose={handleCloseSnackbar}
-          anchorOrigin={{ vertical: "top", horizontal: "center" }}
+          severity="error"
+          sx={{ width: "100%" }}
         >
-          <Alert
-            onClose={handleCloseSnackbar}
-            severity="error"
-            sx={{ width: "100%" }}
-          >
-            {errorMessage}
-          </Alert>
-        </Snackbar>
+          {errorMessage}
+        </Alert>
+      </Snackbar>
     </Box>
   );
 }

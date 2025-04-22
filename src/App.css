@@ -8,15 +8,7 @@
 - Last Modified Date: 1/11/2024
 - Description : global styling
 */
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-  }
-  
-  body{
-    font-family: "Roboto", sans-serif;
-  }
+
   .container {
     display: flex;
     /* position: fixed; */

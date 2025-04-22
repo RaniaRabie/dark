@@ -38,9 +38,11 @@ import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import SaveIcon from "@mui/icons-material/Save";
 import CancelIcon from "@mui/icons-material/Cancel";
+import axios from "axios";
 
 const FAQ = () => {
-  const theme = useTheme(); // استخدام الثيم للوضع الحالي
+  const theme = useTheme();
+
   const [showInputFields, setShowInputFields] = useState(false);
   const [newQuestion, setNewQuestion] = useState("");
   const [newAnswer, setNewAnswer] = useState("");
@@ -52,18 +54,24 @@ const FAQ = () => {
   const [snackbarMessage, setSnackbarMessage] = useState("");
   const [snackbarSeverity, setSnackbarSeverity] = useState("success");
 
-  const [dialogOpen, setDialogOpen] = useState(false); // Control for delete confirmation dialog
-  const [selectedDeleteIndex, setSelectedDeleteIndex] = useState(null); // Track the FAQ to delete
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [selectedDeleteIndex, setSelectedDeleteIndex] = useState(null);
 
+  // axios instance with Authorization header
+  const api = axios.create({
+    baseURL: "https://careerguidance.runasp.net/api/Dashboard",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
+    },
+  });
+
+  // Fetch all FAQs on mount
   useEffect(() => {
-    // Fetch existing FAQs from the backend
     const fetchFAQs = async () => {
       try {
-        const response = await fetch(
-          "https://careerguidance.runasp.net/api/Dashboard/GetAllQuestions"
-        );
-        const data = await response.json();
-        setFaqData(data); // Assuming the response is an array of FAQs
+        const response = await api.get("/GetAllQuestions");
+        setFaqData(response.data);
       } catch (error) {
         console.error("Error fetching FAQs:", error);
       }
@@ -76,95 +84,61 @@ const FAQ = () => {
   };
 
   const handlePublish = async () => {
-    if (newQuestion && newAnswer) {
-      try {
-        const response = await fetch(
-          "https://careerguidance.runasp.net/api/Dashboard/AddQuestion",
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({ question: newQuestion, answer: newAnswer }),
-          }
-        );
+    if (!newQuestion || !newAnswer) return;
 
-        if (!response.ok) {
-          const errorData = await response.json();
-          const errorMessage =
-            errorData.errors && errorData.errors.length > 0
-              ? errorData.errors[1]
-              : "Failed to add question";
-          setSnackbarMessage(errorMessage);
-          setSnackbarSeverity("error");
-          setSnackbarOpen(true);
-          return;
-        }
+    try {
+      await api.post("/AddQuestion", {
+        question: newQuestion,
+        answer: newAnswer,
+      });
 
-        // Fetch updated FAQ list
-        const newResponse = await fetch(
-          "https://careerguidance.runasp.net/api/Dashboard/GetAllQuestions"
-        );
-        const data = await newResponse.json();
-        setFaqData(data);
+      // Refresh FAQ list
+      const { data } = await api.get("/GetAllQuestions");
+      setFaqData(data);
 
-        setSnackbarMessage("Question added successfully!");
-        setSnackbarSeverity("success");
-        setSnackbarOpen(true);
-        setNewQuestion(""); // Clear fields
-        setNewAnswer("");
-        setShowInputFields(false); // Hide input fields
-      } catch (error) {
-        console.error("Error adding question:", error);
-        setSnackbarMessage("Error adding question");
-        setSnackbarSeverity("error");
-        setSnackbarOpen(true);
-      }
+      setSnackbarMessage("Question added successfully!");
+      setSnackbarSeverity("success");
+      setSnackbarOpen(true);
+      setNewQuestion("");
+      setNewAnswer("");
+      setShowInputFields(false);
+    } catch (error) {
+      console.error("Error adding question:", error);
+      const msg =
+        error.response?.data?.errors?.[1] || "Failed to add question";
+      setSnackbarMessage(msg);
+      setSnackbarSeverity("error");
+      setSnackbarOpen(true);
     }
   };
 
   const handleDeleteConfirmation = (index) => {
     setSelectedDeleteIndex(index);
-    setDialogOpen(true); // Open the dialog
+    setDialogOpen(true);
   };
 
   const handleDelete = async () => {
-    const index = selectedDeleteIndex;
-    const faqToDelete = faqData[index];
+    const faqToDelete = faqData[selectedDeleteIndex];
 
     try {
-      const response = await fetch(
-        `https://careerguidance.runasp.net/api/Dashboard/DeleteQuestion/${faqToDelete.id}`,
-        {
-          method: "DELETE",
-        }
+      await api.delete(`/DeleteQuestion/${faqToDelete.id}`);
+
+      setFaqData((prev) =>
+        prev.filter((_, i) => i !== selectedDeleteIndex)
       );
-
-      if (response.status === 204) {
-        setFaqData(faqData.filter((_, i) => i !== index));
-        setSnackbarMessage("Question deleted successfully!");
-        setSnackbarSeverity("success");
-        setSnackbarOpen(true);
-      } else {
-        const errorData = await response.json();
-        const errorMessage =
-          errorData.errors && errorData.errors.length > 1
-            ? errorData.errors[1]
-            : "Failed to delete question";
-
-        setSnackbarMessage(errorMessage);
-        setSnackbarSeverity("error");
-        setSnackbarOpen(true);
-      }
+      setSnackbarMessage("Question deleted successfully!");
+      setSnackbarSeverity("success");
     } catch (error) {
       console.error("Error deleting question:", error);
-      setSnackbarMessage("Error deleting question");
+      const msg =
+        error.response?.data?.errors?.[1] || "Failed to delete question";
+      setSnackbarMessage(msg);
       setSnackbarSeverity("error");
+    } finally {
       setSnackbarOpen(true);
+      setDialogOpen(false);
+      setSelectedDeleteIndex(null);
     }
-
-    setDialogOpen(false); // Close the dialog
-    setSelectedDeleteIndex(null); // Reset selection
   };
 
   const handleEdit = (index) => {
@@ -175,49 +149,32 @@ const FAQ = () => {
 
   const handleSave = async (index) => {
     const faqToUpdate = faqData[index];
-    const updatedFaq = { question: editQuestion, answer: editAnswer };
 
     try {
-      const response = await fetch(
-        `https://careerguidance.runasp.net/api/Dashboard/UpdateQuestion/${faqToUpdate.id}`,
-        {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(updatedFaq),
-        }
-      );
+      await api.put(`/UpdateQuestion/${faqToUpdate.id}`, {
+        question: editQuestion,
+        answer: editAnswer,
+      });
 
-      if (response.ok) {
-        const updatedFaqs = faqData.map((faq, i) =>
+      setFaqData((prev) =>
+        prev.map((faq, i) =>
           i === index
             ? { ...faq, question: editQuestion, answer: editAnswer }
             : faq
-        );
-        setFaqData(updatedFaqs);
-        setEditIndex(null);
-        setEditQuestion("");
-        setEditAnswer("");
-
-        setSnackbarMessage("Question updated successfully!");
-        setSnackbarSeverity("success");
-        setSnackbarOpen(true);
-      } else {
-        const errorData = await response.json();
-        const errorMessage =
-          errorData.errors && errorData.errors.length > 0
-            ? errorData.errors[1]
-            : "Failed to update question";
-
-        setSnackbarMessage(errorMessage);
-        setSnackbarSeverity("error");
-        setSnackbarOpen(true);
-      }
+        )
+      );
+      setSnackbarMessage("Question updated successfully!");
+      setSnackbarSeverity("success");
+      setEditIndex(null);
+      setEditQuestion("");
+      setEditAnswer("");
     } catch (error) {
       console.error("Error updating question:", error);
-      setSnackbarMessage("Error updating question");
+      const msg =
+        error.response?.data?.errors?.[1] || "Failed to update question";
+      setSnackbarMessage(msg);
       setSnackbarSeverity("error");
+    } finally {
       setSnackbarOpen(true);
     }
   };
@@ -231,6 +188,7 @@ const FAQ = () => {
   const handleSnackbarClose = () => {
     setSnackbarOpen(false);
   };
+
 
   return (
     <Box

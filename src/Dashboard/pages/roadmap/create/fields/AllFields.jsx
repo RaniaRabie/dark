@@ -33,7 +33,8 @@ import axios from "axios";
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import DeleteIcon from "@mui/icons-material/Delete";
-import EditIcon from '@mui/icons-material/Edit';
+import EditIcon from "@mui/icons-material/Edit";
+import { useAuth } from "context/AuthContext";
 export default function AllFields() {
   const navigate = useNavigate();
 
@@ -44,6 +45,7 @@ export default function AllFields() {
   const [fields, setFields] = useState([]);
   const [open, setOpen] = useState(false);
   const [selectedFieldId, setSelectedFieldId] = useState(null);
+  const { token } = useAuth();
 
   useEffect(() => {
     axios
@@ -52,17 +54,16 @@ export default function AllFields() {
       )
       .then((response) => {
         setFields(response.data);
-        console.log(response.data)
+        console.log(response.data);
       })
       .catch((error) => {
         console.error("Error fetching fields:", error);
       });
   }, []);
 
-  const handleFieldClick = (id,fieldName) => {
+  const handleFieldClick = (id, fieldName) => {
     navigate(`/dashboard/addfield/${id}`, { state: fieldName });
   };
-
 
   const handleOpenDialog = (id) => {
     setSelectedFieldId(id);
@@ -78,7 +79,13 @@ export default function AllFields() {
     if (selectedFieldId) {
       axios
         .delete(
-          `https://careerguidance.runasp.net/api/Dashboard/DeleteRoadmapCategory/${selectedFieldId}`
+          `https://careerguidance.runasp.net/api/Dashboard/DeleteRoadmapCategory/${selectedFieldId}`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+              "Content-Type": "application/json",
+            },
+          }
         )
         .then(() => {
           setFields((prevFields) =>
@@ -92,8 +99,8 @@ export default function AllFields() {
         });
     }
   };
- 
-const theme = useTheme();
+
+  const theme = useTheme();
   return (
     <Box>
       <Typography
@@ -116,9 +123,7 @@ const theme = useTheme();
               px: 2,
             }}
           >
-            <Typography sx={{ flexGrow: 1 }}>
-              {field.category}
-            </Typography>
+            <Typography sx={{ flexGrow: 1 }}>{field.category}</Typography>
 
             <Tooltip title="Edit field">
               <IconButton

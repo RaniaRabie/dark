@@ -17,7 +17,19 @@ import { Outlet } from "react-router-dom";
 import { Box, CssBaseline, ThemeProvider } from "@mui/material";
 import { lightTheme, darkTheme } from "../theme";
 import SmartFooter from "./components/Footer";
-import JobPortalHeader from "./components/Header";
+import { styled } from "@mui/material/styles";
+import Header from "./components/Header";
+
+const PageContainer = styled("div")({
+  display: "flex",
+  minHeight: "100vh",
+  flexDirection: "column",
+});
+
+// Styled component for the main content
+const MainContent = styled(Box)({
+  flex: "1 0 auto", // This allows the content to grow while keeping footer at bottom
+});
 
 export default function DevRootsOutlet() {
   const [open, setOpen] = useState(false);
@@ -46,22 +58,22 @@ export default function DevRootsOutlet() {
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
-
-      {/* <TopBar
+      <PageContainer>
+        {/* <TopBar
         // @ts-ignore
         open={open}
         handleDrawerOpen={handleDrawerOpen}
         setMode={handleToggleMode} // Pass the new function to TopBar
       /> */}
 
-      <JobPortalHeader setMode={handleToggleMode}/>
+        <Header setMode={handleToggleMode}/>
 
-      <Box>
-        <Outlet />
-      </Box>
+        <MainContent>
+          <Outlet />
+        </MainContent>
 
-      <SmartFooter/>
-
+        <SmartFooter />
+      </PageContainer>
     </ThemeProvider>
   );
 }

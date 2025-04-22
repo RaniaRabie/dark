@@ -24,14 +24,17 @@ import reportWebVitals from "./reportWebVitals";
 import { BrowserRouter } from "react-router-dom";
 import { GoogleOAuthProvider } from "@react-oauth/google";
 import { RoadmapProvider } from "./Dashboard/pages/roadmap/create/RoadmapContext";
+import { AuthProvider } from "./context/AuthContext";
 
 const root = ReactDOM.createRoot(document.getElementById("root"));
 root.render(
   <BrowserRouter>
     <GoogleOAuthProvider clientId="863819354066-fafo7lel76kd78g15q5bf391t0mrvmuj.apps.googleusercontent.com">
+    <AuthProvider>
         <RoadmapProvider>
           <App />
         </RoadmapProvider>
+      </AuthProvider>
     </GoogleOAuthProvider>
   </BrowserRouter>
 );
