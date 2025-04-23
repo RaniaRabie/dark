@@ -435,7 +435,7 @@ const DnDFlow = () => {
         }
       );
 
-      console.log("Nodes data successfully stored:", response.data);
+      // console.log("Nodes data successfully stored:", response.data);
 
       // Navigate to the new page after data is successfully posted
       navigate("/dashboard/allroadmaps");
@@ -478,12 +478,12 @@ const DnDFlow = () => {
             edges,
           } = parsedRoadmap;
 
-          console.log("Fetched roadmapCategory:", roadmapCategory);
-          console.log("Fetched roadmapName:", roadmapName);
-          console.log("Fetched roadmap Description:", roadmapDescription);
-          console.log("Fetched image Url:", imageUrl);
-          console.log("Fetched nodes:", nodes); // Check fetched nodes
-          console.log("Fetched edges:", edges); // Check fetched edges
+          // console.log("Fetched roadmapCategory:", roadmapCategory);
+          // console.log("Fetched roadmapName:", roadmapName);
+          // console.log("Fetched roadmap Description:", roadmapDescription);
+          // console.log("Fetched image Url:", imageUrl);
+          // console.log("Fetched nodes:", nodes); // Check fetched nodes
+          // console.log("Fetched edges:", edges); // Check fetched edges
 
           setRoadmapCategory(roadmapCategory || "");
           setRoadmapName(roadmapName || ""); // Set the roadmapName from the response
@@ -492,7 +492,7 @@ const DnDFlow = () => {
           setNodes(nodes || []); // Set the nodes from the response
           setEdges(edges || []); // Set the edges from the response
 
-          console.log(response.data);
+          // console.log(response.data);
           setRoadmap(response.data); // Set the specific roadmap data
         })
         .catch((error) => {
@@ -542,7 +542,7 @@ const DnDFlow = () => {
         }
       )
       .then(() => {
-        console.log("Roadmap updated successfully.");
+        // console.log("Roadmap updated successfully.");
         navigate("/dashboard/allroadmaps"); // Redirect after update
       })
       .catch((error) => {

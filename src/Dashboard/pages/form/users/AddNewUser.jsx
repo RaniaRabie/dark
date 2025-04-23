@@ -36,6 +36,7 @@ import LockIcon from "@mui/icons-material/Lock";
 import axios from "axios";
 import { Visibility, VisibilityOff } from "@mui/icons-material";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "context/AuthContext";
 
 const AddNewUser = () => {
   // Username Validation
@@ -136,6 +137,8 @@ const AddNewUser = () => {
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState("");
   const [snackbarSeverity, setSnackbarSeverity] = useState("success");
+    const {token} = useAuth()
+  
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -186,21 +189,8 @@ const AddNewUser = () => {
     if (!isValidUsername || !isValidEmail || !isPasswordValid) {
       return;
     }
-    const refreshAccessToken = async () => {
-      const storedRefresh = localStorage.getItem("refreshToken");
-      if (!storedRefresh) throw new Error("No refresh token");
-      const resp = await axios.post(
-        "https://careerguidance.runasp.net/Auth/refresh",
-        { refreshToken: storedRefresh }
-      );
-      const { accessToken, refreshToken: newRefresh } = resp.data;
-      localStorage.setItem("accessToken", accessToken);
-      localStorage.setItem("refreshToken", newRefresh);
-      return accessToken;
-    };
   
     try {
-      const token = localStorage.getItem("accessToken");
       if (!token) throw new Error("No access token");
       const response = await axios.post(
         "https://careerguidance.runasp.net/api/Dashboard/AddUser",
@@ -241,7 +231,7 @@ const AddNewUser = () => {
       }, 3000);
     } catch (error) {
       // Handle errors
-      console.log("Error during API call: ", error);
+      // console.log("Error during API call: ", error);
       if (
         (error.response && error.response.status === 400) ||
         (error.response && error.response.status === 409) ||
@@ -264,55 +254,7 @@ const AddNewUser = () => {
     setOpenSnackbar(false);
   };
 
-  const getToken = () => {
-    return localStorage.getItem("accessToken");
-  };
 
-  const getRefreshToken = () => {
-    return localStorage.getItem("refreshToken");
-  };
-  const fetchData = async () => {
-    const token = getToken();
-
-    try {
-      const response = await axios.get("https://yourapi.com/endpoint", {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      console.log("Data fetched successfully:", response.data);
-    } catch (error) {
-      console.error("Error fetching data:", error);
-
-      //  handle token expiration and refresh
-      if (error.response && error.response.status === 401) {
-        console.log("Token expired, refreshing...");
-        await refreshAccessToken(); // Implement refresh logic
-      }
-    }
-  };
-  const refreshAccessToken = async () => {
-    const refreshToken = getRefreshToken();
-
-    try {
-      const response = await axios.post(
-        "https://careerguidance.runasp.net/Auth/refresh",
-        {
-          refreshToken: refreshToken,
-        }
-      );
-
-      // Store the new access token
-      localStorage.setItem("accessToken", response.data.accessToken);
-      console.log(
-        "Access token refreshed successfully:",
-        response.data.accessToken
-      );
-    } catch (error) {
-      console.error("Error refreshing access token:", error);
-    }
-  };
 
   const theme = useTheme();
   return (

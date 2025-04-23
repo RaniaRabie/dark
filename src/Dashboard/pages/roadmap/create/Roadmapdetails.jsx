@@ -105,7 +105,7 @@ export default function RoadmapDetails() {
         }
       );
 
-      console.log("Roadmap updated successfully.");
+      // console.log("Roadmap updated successfully.");
     } catch (error) {
       console.error("Error updating roadmap:", error);
       if (
@@ -164,7 +164,7 @@ export default function RoadmapDetails() {
 
         if (response.status === 200) {
           navigate("/dashboard/create");
-          console.log("you can continue");
+          // console.log("you can continue");
         }
       } catch (error) {
         console.error("Failed to check roadmap name:", error);

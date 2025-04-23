@@ -94,7 +94,7 @@ const BaseRoadmap = ({
       <br />
 
       {/* Progress Bar */}
-      <div
+      <Box
         style={{
           display: "flex",
           flexDirection: "column",
@@ -116,8 +116,8 @@ const BaseRoadmap = ({
             ...customStyles.progressBar,
           }}
         />
-        <p>{Math.round(progress)}% Completed</p>
-      </div>
+        <Typography sx={{color: theme.palette.text.primary}}>{Math.round(progress)}% Completed</Typography>
+      </Box>
 
       <Box sx={{ height: "95vh", ...customStyles.flowContainer }}>
         <ReactFlowProvider>

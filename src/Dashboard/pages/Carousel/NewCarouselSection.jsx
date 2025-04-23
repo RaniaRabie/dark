@@ -92,7 +92,7 @@ export default function NewCarouselSection() {
         "https://careerguidance.runasp.net/api/Dashboard/GetAllCarouselSection"
       );
       setCarouselSections(response.data);
-      console.log("Fetched sections:", response.data);
+      // console.log("Fetched sections:", response.data);
     } catch (error) {
       console.error("Error fetching sections:", error);
       setErrorMessage("Failed to fetch carousel sections.");

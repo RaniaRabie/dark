@@ -44,7 +44,7 @@ const EditProfile = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    console.log("Profile updated:", user);
+    // console.log("Profile updated:", user);
     setOpenSnackbar(true);
   };
 

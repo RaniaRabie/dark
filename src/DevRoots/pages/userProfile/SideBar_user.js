@@ -42,37 +42,33 @@ const SideBaR = ({ tab, setTab }) => {
   const navigate = useNavigate();
   const theme = useTheme();
 
-  // Fetch user info when userId and token are available
-  useEffect(() => {
-    if (userId && token) {
-      axios
-        .get(
-          `https://careerguidance.runasp.net/api/userProfile/GetUserById/${userId}`,
-          {
-            headers: { Authorization: `Bearer ${token}` },
-          }
-        )
-        .then((res) => {
-          setUserInfo(res.data || {});
-        })
-        .catch((err) => {
-          console.error("Error fetching user data", err);
-        });
-    } else {
-      setUserInfo({}); // Clear user info if not logged in
-    }
-  }, [userId, token]);
+ // Fetch user info when user and token are available
+ useEffect(() => {
+  if (userId && token) {
+    axios
+      .get(
+        `https://careerguidance.runasp.net/api/userProfile/GetUserById/${userId}`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      )
+      .then((res) => {
+        setUserInfo(res.data || {});
+      })
+      .catch((err) => {
+        console.error("Error fetching user data", err);
+      });
+  } else {
+    setUserInfo({}); // Clear user info if not logged in
+  }
+}, [userId, token]);
 
-  // Handle tab clicks
-  const handleTabClick = (label) => {
-    if (label === "Logout") {
-      logout(); 
-      navigate("/regesteration"); 
-      window.location.reload();
-    } 
-  };
-
-  // Dynamically set tab items based on authentication state
+// Handle tab clicks
+const handleTabClick = (label) => {
+  if (label === "Logout") {
+    logout(); // Clear auth data via AuthContext
+  }
+};
 
 
   const sidebarWidth = isOpen ? (isMobile ? 240 : 300) : 64;

@@ -107,7 +107,7 @@ export default function StarthereRoadmap() {
   const [selectedNodeData, setSelectedNodeData] = useState(null);
   const [completedNodes, setCompletedNodes] = useState([]);
   const [progressId, setProgressId] = useState(null);
-  const roadmapId = "9046784f-3377-4ce7-b1dd-e1d911e47dc0";
+  const roadmapId = "0ed78fcc-2fcd-49f4-94ea-6407645994f2";
 
 const token = useAuth()
   // Fetch roadmap + user progress

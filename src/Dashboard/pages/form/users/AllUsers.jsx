@@ -4,6 +4,7 @@ import { DataGrid, GridToolbarQuickFilter } from "@mui/x-data-grid";
 import GroupIcon from "@mui/icons-material/Group";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
+import { useAuth } from "../../../../context/AuthContext";
 
 export default function AllUsers() {
   const [rows, setRows] = useState([]);
@@ -11,69 +12,44 @@ export default function AllUsers() {
   const [error, setError] = useState(null);
   const navigate = useNavigate();
   const paginationModel = { page: 0, pageSize: 9 };
-// Function to refresh access token using refresh token
-const refreshAccessToken = async () => {
-  const storedRefresh = localStorage.getItem("refreshToken");
-  if (!storedRefresh) throw new Error("No refresh token found");
+  const {token} = useAuth();
 
-  const response = await axios.post(
-    "https://careerguidance.runasp.net/Auth/refresh",
-    { refreshToken: storedRefresh }
-  );
+  useEffect(() => {
+    const fetchUsers = async () => {
+      setLoading(true);
+      setError(null);
 
-  const { accessToken, refreshToken: newRefreshToken } = response.data;
-  localStorage.setItem("accessToken", accessToken);
-  localStorage.setItem("refreshToken", newRefreshToken);
-  return accessToken;
-};
+      try {
+        if (!token) throw new Error("No access token found");
 
-useEffect(() => {
-  const fetchUsers = async () => {
-    setLoading(true);
-    setError(null);
+        // Use apiClient for the API call, which handles token refresh
+        const response = await axios.get(
+          "https://careerguidance.runasp.net/api/Dashboard/GetAllUsers",
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
 
-    const getUsers = async (token) => {
-      return axios.get(
-        "https://careerguidance.runasp.net/api/Dashboard/GetAllUsers",
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+        // Format the response data
+        const formattedData = response.data.map((user) => ({
+          id: user.id,
+          name: user.userName,
+          email: user.email,
+          role: user.role || "N/A",
+        }));
+
+        setRows(formattedData);
+      } catch (err) {
+        console.error("Error fetching users:", err);
+        setError(err.message || "Failed to fetch users. Try again later.");
+      } finally {
+        setLoading(false);
+      }
     };
 
-    try {
-      let token = localStorage.getItem("accessToken");
-      if (!token) throw new Error("No access token found");
+    fetchUsers();
+  }, [token]); // Add token as a dependency to re-fetch if token changes
 
-      let response;
-      try {
-        response = await getUsers(token);
-      } catch (err) {
-        if (err.response?.status === 401 || err.response?.status === 403) {
-          // Try refreshing token once
-          token = await refreshAccessToken();
-          response = await getUsers(token);
-        } else {
-          throw err;
-        }
-      }
-
-      const formattedData = response.data.map((user) => ({
-        id: user.id,
-        name: user.userName,
-        email: user.email,
-        role: user.role || "N/A",
-      }));
-
-      setRows(formattedData);
-    } catch (err) {
-      console.error("Error fetching users:", err);
-      setError("Failed to fetch users. Try again later.");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  fetchUsers();
-}, []);
   const columns = [
     {
       field: "name",

@@ -54,7 +54,7 @@ export default function AllFields() {
       )
       .then((response) => {
         setFields(response.data);
-        console.log(response.data);
+        // console.log(response.data);
       })
       .catch((error) => {
         console.error("Error fetching fields:", error);

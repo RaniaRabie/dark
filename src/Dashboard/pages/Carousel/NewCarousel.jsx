@@ -84,7 +84,7 @@ export default function NewCarousel() {
         "https://careerguidance.runasp.net/api/Dashboard/GetAllCarouselSection"
       )
       .then((response) => {
-        console.log("🎯 Carousel Sections fetched:", response.data); // <-- Log the response
+        // console.log("🎯 Carousel Sections fetched:", response.data); 
         setCreatedCarouselSections(response.data); // Store fetched categories in state
       })
       .catch((error) => {
@@ -108,7 +108,7 @@ export default function NewCarousel() {
         carouselImg,
         carouselUrl,
       };
-      console.log("Sending data:", updatedCarouselData)
+      // console.log("Sending data:", updatedCarouselData)
 
       // Make the PUT request with data
       await axios.put(
@@ -122,7 +122,7 @@ export default function NewCarousel() {
         }
       );
 
-      console.log("Carousel updated successfully.");
+      // console.log("Carousel updated successfully.");
       navigate("/dashboard/allCarousel");
     } catch (error) {
       console.error("Error updating carousel:", error);
@@ -187,7 +187,7 @@ export default function NewCarousel() {
         carouselUrl: carouselUrl,
       };
 
-      console.log("🚀 Request body being sent to backend:", requestBody);
+      // console.log("🚀 Request body being sent to backend:", requestBody);
       try {
         await axios.post(
           "https://careerguidance.runasp.net/api/Dashboard/AddDetailsCarouselSection",

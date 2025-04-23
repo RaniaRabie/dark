@@ -18,6 +18,7 @@ import {
   useTheme,
   InputAdornment,
   OutlinedInput,
+  useMediaQuery,
 } from "@mui/material";
 import Settingg from "./Settingg";
 import SocialMedia from "./SocialMedia";
@@ -58,9 +59,14 @@ function UpdateUser() {
     imageUrl: false,
     all: false,
   });
-
+  const [nameError, setNameError] = useState("");
   const [phoneError, setPhoneError] = useState("");
   const governorates = ["Egypt"];
+  const theme = useTheme();
+  //  Detect screen size
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm")); // <= 600px
+  const isTablet = useMediaQuery(theme.breakpoints.between("sm", "md")); // 600px - 1024px
+  const [isSidebarOpen, setIsSidebarOpen] = useState(!isMobile); // Sidebar open by default on non-mobile
 
   const isoDate = userInfo.dateOfBirth;
   const { userId } = useAuth();
@@ -71,7 +77,10 @@ function UpdateUser() {
       )
       .then((response) => {
         const data = response.data || {};
-        setUserInfo(data);
+        setUserInfo({
+          ...data,
+          dateOfBirth: data.dateOfBirth ? data.dateOfBirth.slice(0, 10) : "",
+        });
       })
       .catch((error) => {
         console.error("Error fetching user data", error);
@@ -81,12 +90,29 @@ function UpdateUser() {
       });
   }, [userId]);
 
+  // Name validation
+  const validateName = (name) => {
+    const cleaned = name.trim();
+    const nameRegex = /^[a-zA-Z\s]+$/; // Allow only letters and spaces
+
+    if (!cleaned) return "Name is required.";
+    if (cleaned.length < 3) return "Name must be at least 3 characters long.";
+    if (cleaned.length > 30) return "Name must be less than 30 characters.";
+    if (cleaned.match(/\d/)) return "Name cannot contain numbers.";
+    if (!nameRegex.test(cleaned))
+      return "Name cannot contain special characters.";
+    return "";
+  };
+
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setUserInfo((prev) => ({
       ...prev,
       [name]: value.trim(),
     }));
+    if (name === "name") {
+      setNameError(validateName(value));
+    }
   };
 
   const toggleEdit = (field) => {
@@ -107,13 +133,23 @@ function UpdateUser() {
     }
   };
 
+  // Format DOB for display
   const formatDOBForDisplay = (isoDate) => {
     if (!isoDate || isoDate.startsWith("0001")) return "";
     const date = new Date(isoDate);
+    if (isNaN(date.getTime())) return "";
     const day = String(date.getDate()).padStart(2, "0");
     const month = String(date.getMonth() + 1).padStart(2, "0");
     const year = date.getFullYear();
     return `${day}/${month}/${year}`;
+  };
+  // Handle DOB input
+  const handleDOBChange = (e) => {
+    const value = e.target.value;
+    setUserInfo((prev) => ({
+      ...prev,
+      dateOfBirth: value,
+    }));
   };
 
   const handlePhoneInput = (e) => {
@@ -133,7 +169,7 @@ function UpdateUser() {
       setUserInfo((prev) => ({ ...prev, phoneNumber: e.target.value }));
     }
   };
-  const [nameError, setNameError] = useState("");
+
   const handleKeyPress = (e) => {
     if (e.key === "Enter") {
       e.preventDefault();
@@ -142,15 +178,67 @@ function UpdateUser() {
   };
   const handleSave = async () => {
     try {
-      if (userInfo.name.length < 3) {
-        setNameError("Name must be at least 3 characters long");
+      // Validate required fields
+      if (!userInfo.name) {
+        setNameError("Name is required.");
+        setSnackbarMessage("Name is required.");
+        setSnackbarSeverity("error");
+        setSnackbarOpen(true);
         return;
-      } else {
-        setNameError("");
+      }
+      if (!userInfo.phoneNumber) {
+        setPhoneError("Phone number is required.");
+        setSnackbarMessage("Phone number is required.");
+        setSnackbarSeverity("error");
+        setSnackbarOpen(true);
+        return;
+      }
+      if (!userInfo.dateOfBirth) {
+        setSnackbarMessage("Date of birth is required.");
+        setSnackbarSeverity("error");
+        setSnackbarOpen(true);
+        return;
       }
 
+      // Validate name
+      const nameValidationError = validateName(userInfo.name);
+      if (nameValidationError) {
+        setNameError(nameValidationError);
+        setSnackbarMessage(nameValidationError);
+        setSnackbarSeverity("error");
+        setSnackbarOpen(true);
+        return;
+      }
+
+      // Validate phone
       if (phoneError) {
         setSnackbarMessage("Please correct phone number before saving");
+        setSnackbarSeverity("error");
+        setSnackbarOpen(true);
+        return;
+      }
+
+      // Validate date of birth (age between 9 and 55)
+      const dob = new Date(userInfo.dateOfBirth);
+      const today = new Date();
+      let age = today.getFullYear() - dob.getFullYear();
+      const monthDiff = today.getMonth() - dob.getMonth();
+      if (
+        monthDiff < 0 ||
+        (monthDiff === 0 && today.getDate() < dob.getDate())
+      ) {
+        age--;
+      }
+      if (age < 9 || age > 55) {
+        setSnackbarMessage("Age must be between 9 and 55 years.");
+        setSnackbarSeverity("error");
+        setSnackbarOpen(true);
+        return;
+      }
+
+      // Validate image URL
+      if (userInfo.imageUrl && !userInfo.imageUrl.startsWith("https://")) {
+        setSnackbarMessage("Image URL must start with https://");
         setSnackbarSeverity("error");
         setSnackbarOpen(true);
         return;
@@ -162,17 +250,11 @@ function UpdateUser() {
         name: userInfo.name || "",
         country: userInfo.country || "",
         phoneNumber: userInfo.phoneNumber || null,
-        dateOfBirth:
-          userInfo.dateOfBirth &&
-          userInfo.dateOfBirth !== "0001-01-01T00:00:00" &&
-          userInfo.dateOfBirth !== "0001-01-01"
-            ? new Date(userInfo.dateOfBirth).toISOString()
-            : new Date("2000-01-01").toISOString(),
-
+        dateOfBirth: userInfo.dateOfBirth
+          ? new Date(userInfo.dateOfBirth).toISOString()
+          : new Date("2000-01-01").toISOString(),
         imageUrl: userInfo.imageUrl || "",
       };
-
-      console.log("Updated Data =>", JSON.stringify(updatedData, null, 2));
 
       await axios.put(
         `https://careerguidance.runasp.net/api/userProfile/UpdateProfile/${userId}`,
@@ -200,25 +282,56 @@ function UpdateUser() {
       });
     } catch (error) {
       console.error("Error updating profile", error);
-      setSnackbarMessage("Error updating profile.");
+      const messages = [];
+
+      if (error.response && error.response.data?.errors) {
+        const backendErrors = error.response.data.errors;
+        if (Array.isArray(backendErrors)) {
+          messages.push(backendErrors[1] || backendErrors[0]);
+        } else if (typeof backendErrors === "object") {
+          const firstKey = Object.keys(backendErrors)[0];
+          const firstError = backendErrors[firstKey]?.[0];
+          if (firstError) {
+            messages.push(firstError);
+          }
+        }
+      }
+
+      if (userInfo.imageUrl && !userInfo.imageUrl.startsWith("https://")) {
+        messages.push("Image URL must start with https://");
+      }
+
+      if (messages.length === 0) {
+        messages.push("An unexpected error occurred.");
+      }
+
+      setSnackbarMessage(messages[0]);
       setSnackbarSeverity("error");
       setSnackbarOpen(true);
     }
   };
 
-  const theme = useTheme();
-
   const inputStyleFull = {
-    width: "100%",
+    width: { xs: "100%", sm: "90%", md: "85%", lg: "100%" },
     "& .MuiOutlinedInput-root": {
       borderRadius: "25px",
       height: "45px",
       paddingRight: 1,
-
       backgroundColor: "transparent",
       "& fieldset": { border: "1px solid #ee6c4d" },
       "&:hover fieldset": { borderColor: "#ee6c4d" },
       "&.Mui-focused fieldset": { borderColor: "#ee6c4d" },
+    },
+    "& input:-webkit-autofill": {
+      WebkitBoxShadow: "0 0 0 10px transparent inset",
+      backgroundColor: "transparent",
+      WebkitTextFillColor: theme.palette.text.primary,
+      transition: "background-color 5000s ease-in-out 0s",
+    },
+    "& input:-webkit-autofill:focus, & input:-webkit-autofill:hover": {
+      backgroundColor: "transparent",
+      WebkitBoxShadow: "0 0 0 10px transparent inset",
+      transition: "background-color 5000s ease-in-out 0s",
     },
   };
 
@@ -239,7 +352,6 @@ function UpdateUser() {
               ...icon.props?.style,
             },
           })}
-
           <div
             style={{
               height: "30px",
@@ -254,6 +366,7 @@ function UpdateUser() {
       </InputAdornment>
     ),
   });
+  const sidebarWidth = isSidebarOpen ? (isMobile ? 240 : 300) : 64;
 
   return (
     <Box
@@ -267,7 +380,7 @@ function UpdateUser() {
       }}
     >
       {/* Sidebar */}
-      <Box>
+      <Box sx={{ flexShrink: 0 }}>
         <SideBar tab={tab} setTab={setTab} />
       </Box>
 
@@ -275,13 +388,13 @@ function UpdateUser() {
       <Box
         sx={{
           flex: 1,
-          p: { xs: 2, md: 4 },
+          // ml: { xs: `${sidebarWidth}px`, sm: `${sidebarWidth}px` },
+          p: { xs: 1, sm: 2, md: 3 },
           overflowY: "auto",
           display: "flex",
           justifyContent: "center",
           alignItems: "center",
-          transition: "all 0.3s ease",
-          // marginTop: editStates.all ? "30px" : "0",
+          transition: "margin-left 0.3s ease",
         }}
       >
         {tab === 0 && (
@@ -293,7 +406,7 @@ function UpdateUser() {
               gap: 3,
               marginTop: "50px",
               justifyContent: "center",
-              width: "60%",
+              width: { xs: "90%", sm: "80%", md: "70%", lg: "60%" },
               transition: "all 0.3s ease",
             }}
           >
@@ -301,10 +414,14 @@ function UpdateUser() {
               elevation={3}
               sx={{
                 borderRadius: 4,
-                p: 4,
-                width: "60%",
-                maxWidth: editStates.all ? "600px" : "400px",
+                // p: 4,
+                p: { xs: 2, sm: 3, md: 4 },
+                width: { xs: "100%", sm: "95%", md: "90%", lg: "60%" },
+                maxWidth: { xs: "100%", sm: 550, md: 600, lg: 650 },
                 minWidth: { xs: "90%", sm: "80%", md: "60%" },
+                // width: "60%",
+                // maxWidth: editStates.all ? "600px" : "400px",
+                // minWidth: { xs: "90%", sm: "80%", md: "60%" },
                 transition: "all 0.3s ease-in-out",
                 margin: "0 auto",
                 justifyContent: "center",
@@ -324,7 +441,8 @@ function UpdateUser() {
                 <Typography
                   sx={{
                     color: theme.palette.text.primary,
-                    fontSize: "35px",
+                    fontSize: { xs: 20, sm: 24, md: 28, lg: 35 },
+                    // fontSize: "35px",
                     fontWeight: "bold",
                     textShadow: "1px 1px 1px #b5adad",
                   }}
@@ -335,7 +453,8 @@ function UpdateUser() {
                   <EditIcon
                     sx={{
                       color: "#ee6c4d",
-                      fontSize: "35px",
+                      fontSize: { xs: 26, sm: 28, md: 35 },
+                      // fontSize: "35px",
                       fontWeight: "bold",
                       textShadow: "1px 1px 1px #b5adad",
                     }}
@@ -354,19 +473,65 @@ function UpdateUser() {
                       src={userInfo.imageUrl}
                       alt="Profile"
                       sx={{
-                        width: 120,
-                        height: 120,
+                        width: { xs: 70, sm: 90, md: 100, lg: 120 },
+                        height: { xs: 70, sm: 90, md: 100, lg: 120 },
+                        // width: 120,
+                        // height: 120,
                         border: "2px solid #ee6c4d",
                       }}
                     />
                   </Box>
                 )}
 
-                {/* IMAGEURL*/}
+                {/* IMAGE URL */}
                 {editStates.all && (
-                  <>
+                  <Tooltip
+                    title={
+                      userInfo.imageUrl &&
+                      !userInfo.imageUrl.startsWith("https://")
+                        ? "Image URL must start with https://"
+                        : ""
+                    }
+                    open={
+                      userInfo.imageUrl &&
+                      !userInfo.imageUrl.startsWith("https://")
+                    }
+                    placement={
+                      isMobile ? "bottom" : isTablet ? "top" : "right-start"
+                    }
+                    arrow
+                    PopperProps={{
+                      sx: {
+                        "& .MuiTooltip-tooltip": {
+                          backgroundColor: "#f5f5f5",
+                          color: "#ee6c4d",
+                          fontSize: isMobile ? "12px" : "13px",
+                          fontWeight: "bold",
+                          padding: "8px 12px",
+                          borderRadius: "8px",
+                          boxShadow: "0 2px 4px rgba(0,0,0,0.2)",
+                        },
+                        "& .MuiTooltip-arrow": {
+                          color: "#f5f5f5",
+                        },
+                      },
+                      modifiers: [
+                        {
+                          name: "offset",
+                          options: {
+                            offset: isMobile
+                              ? [0, 8]
+                              : isTablet
+                              ? [0, 10]
+                              : [10, -5],
+                          },
+                        },
+                      ],
+                    }}
+                  >
                     <TextField
                       label="Image URL"
+                      placeholder="Enter image URL (https://...)"
                       name="imageUrl"
                       value={userInfo.imageUrl || ""}
                       onChange={handleInputChange}
@@ -374,52 +539,86 @@ function UpdateUser() {
                       onKeyDown={handleKeyPress}
                       InputProps={adornmentProps(<ImageIcon />)}
                       sx={inputStyleFull}
+                      error={
+                        userInfo.imageUrl &&
+                        !userInfo.imageUrl.startsWith("https://")
+                      }
                     />
-                  </>
+                  </Tooltip>
                 )}
 
-                {/* NAME*/}
+                {/* NAME */}
                 {editStates.all ? (
                   <Tooltip
                     title={nameError || ""}
                     open={!!nameError}
-                    placement="top-start"
+                    placement={
+                      isMobile ? "bottom" : isTablet ? "top" : "right-start"
+                    }
                     arrow
+                    PopperProps={{
+                      sx: {
+                        "& .MuiTooltip-tooltip": {
+                          backgroundColor: "#f5f5f5",
+                          color: "#ee6c4d",
+                          fontSize: isMobile ? "12px" : "13px",
+                          fontWeight: "bold",
+                          padding: "8px 12px",
+                          borderRadius: "8px",
+                          boxShadow: "0 2px 4px rgba(0,0,0,0.2)",
+                        },
+                        "& .MuiTooltip-arrow": {
+                          color: "#f5f5f5",
+                        },
+                      },
+                      modifiers: [
+                        {
+                          name: "offset",
+                          options: {
+                            offset: isMobile
+                              ? [0, 8]
+                              : isTablet
+                              ? [0, 10]
+                              : [10, -5],
+                          },
+                        },
+                      ],
+                    }}
                   >
                     <TextField
-                      label="Name"
+                      label="Name *"
+                      placeholder="Enter your full name"
                       name="name"
-                      onKeyDown={handleKeyPress}
-                      placeholder="Enter your name"
                       value={userInfo.name || ""}
                       onChange={(e) => {
                         const value = e.target.value;
                         setUserInfo((prev) => ({ ...prev, name: value }));
-                        setNameError(
-                          value.length >= 3
-                            ? ""
-                            : "Name must be at least 3 characters long"
-                        );
+                        setNameError(validateName(value));
                       }}
-                      onKeyDown={handleKeyPress}
                       fullWidth
+                      onKeyDown={handleKeyPress}
                       margin="normal"
                       error={!!nameError}
                       InputProps={adornmentProps(<PersonIcon />)}
                       sx={inputStyleFull}
+                      required
                     />
                   </Tooltip>
                 ) : (
-                  <Typography variant="body1">
+                  <Typography
+                    variant="body1"
+                    sx={{  width: "100%" }}
+                  >
                     <strong>Name:</strong> {userInfo.name}
                   </Typography>
                 )}
 
-                {/* Country*/}
+                {/* COUNTRY */}
                 {editStates.all ? (
                   <TextField
                     select
                     label="Country"
+                    placeholder="Select your country"
                     name="country"
                     value={userInfo.country || ""}
                     onChange={handleInputChange}
@@ -435,21 +634,55 @@ function UpdateUser() {
                     ))}
                   </TextField>
                 ) : (
-                  <Typography variant="body1">
+                  <Typography
+                    variant="body1"
+                    sx={{width: "100%" }}
+                  >
                     <strong>Country:</strong> {userInfo.country}
                   </Typography>
                 )}
 
-                {/* PHONE*/}
+                {/* PHONE */}
                 {editStates.all ? (
                   <Tooltip
                     title={phoneError || ""}
                     open={!!phoneError}
-                    placement="top-start"
+                    placement={
+                      isMobile ? "bottom" : isTablet ? "top" : "right-start"
+                    }
                     arrow
+                    PopperProps={{
+                      sx: {
+                        "& .MuiTooltip-tooltip": {
+                          backgroundColor: "#f5f5f5",
+                          color: "#ee6c4d",
+                          fontSize: isMobile ? "12px" : "13px",
+                          fontWeight: "bold",
+                          padding: "8px 12px",
+                          borderRadius: "8px",
+                          boxShadow: "0 2px 4px rgba(0,0,0,0.2)",
+                        },
+                        "& .MuiTooltip-arrow": {
+                          color: "#f5f5f5",
+                        },
+                      },
+                      modifiers: [
+                        {
+                          name: "offset",
+                          options: {
+                            offset: isMobile
+                              ? [0, 8]
+                              : isTablet
+                              ? [0, 10]
+                              : [10, -5],
+                          },
+                        },
+                      ],
+                    }}
                   >
                     <TextField
-                      label="Phone Number"
+                      label="Phone Number *"
+                      placeholder="Enter phone number (e.g., 01234567890)"
                       name="phone"
                       value={userInfo.phoneNumber || ""}
                       onChange={handlePhoneInput}
@@ -458,36 +691,32 @@ function UpdateUser() {
                       error={!!phoneError}
                       InputProps={adornmentProps(<PhoneIcon />)}
                       sx={inputStyleFull}
+                      required
                     />
                   </Tooltip>
                 ) : (
-                  <Typography variant="body1">
+                  <Typography
+                    variant="body1"
+                    sx={{  width: "100%" }}
+                  >
                     <strong>Phone:</strong> {userInfo.phoneNumber}
                   </Typography>
                 )}
 
-                {/* DOB*/}
+                {/* DOB */}
                 {editStates.all ? (
-                  <Box sx={{ display: "flex", gap: 1 }}>
+                  <Box sx={{ display: "flex", gap: 1, width: "100%" }}>
                     <FormControl fullWidth sx={inputStyleFull}>
                       <InputLabel shrink htmlFor="dob-input">
-                        Date of Birth
+                        Date of Birth *
                       </InputLabel>
                       <OutlinedInput
                         id="dob-input"
                         type="date"
+                        placeholder="Select date of birth"
+                        value={userInfo.dateOfBirth || ""}
+                        onChange={handleDOBChange}
                         onKeyDown={handleKeyPress}
-                        value={
-                          userInfo.dateOfBirth === ""
-                            ? ""
-                            : userInfo.dateOfBirth.slice(0, 10)
-                        }
-                        onChange={(e) =>
-                          setUserInfo((prev) => ({
-                            ...prev,
-                            dateOfBirth: e.target.value,
-                          }))
-                        }
                         startAdornment={
                           <InputAdornment position="start">
                             <div
@@ -496,7 +725,6 @@ function UpdateUser() {
                               <CakeIcon
                                 style={{ color: "#ee6c4d", fontSize: 25 }}
                               />
-                              {/* الخط بعد الأيقونة */}
                               <div
                                 style={{
                                   height: "30px",
@@ -509,13 +737,17 @@ function UpdateUser() {
                             </div>
                           </InputAdornment>
                         }
-                        label="Date of Birth"
+                        label="Date of Birth *"
                         notched
+                        required
                       />
                     </FormControl>
                   </Box>
                 ) : (
-                  <Typography variant="body1">
+                  <Typography
+                    variant="body1"
+                    sx={{  width: "100%" }}
+                  >
                     <strong>Date of Birth:</strong>{" "}
                     {formatDOBForDisplay(userInfo.dateOfBirth)}
                   </Typography>
@@ -527,7 +759,7 @@ function UpdateUser() {
                     sx={{
                       display: "flex",
                       justifyContent: "space-evenly",
-                      mt: 1,
+                      mt: 2,
                     }}
                   >
                     <Button
@@ -537,7 +769,7 @@ function UpdateUser() {
                       sx={{
                         textTransform: "capitalize",
                         backgroundColor: "#ee6c4d",
-                        width: "150px",
+                        width: { xs: "45%", sm: "60%", md: "150px" },
                         letterSpacing: "0.5px",
                         cursor: "pointer",
                         border: "1px solid transparent",
@@ -557,7 +789,7 @@ function UpdateUser() {
                         color: "#ee6c4d",
                         border: "1px solid #ee6c4d",
                         borderRadius: "8px",
-                        textTransform:"capitalize",
+                        textTransform: "capitalize",
                         transition: "all 0.3s ease",
                         "&:hover": {
                           backgroundColor: "#d65b3d",
@@ -605,18 +837,23 @@ function UpdateUser() {
           open={snackbarOpen}
           autoHideDuration={6000}
           onClose={handleSnackbarClose}
-          anchorOrigin={{ vertical: "top", horizontal: "center" }}
+          anchorOrigin={{
+            vertical: isMobile ? "bottom" : isTablet ? "bottom" : "top",
+            horizontal: "center",
+          }}
         >
           <Alert
             onClose={handleSnackbarClose}
+            severity={snackbarSeverity}
             sx={{
               width: "100%",
               backgroundColor: "#F5F5DC",
               color: "#ee6c4d",
               borderRadius: "8px",
               boxShadow: "0 4px 6px rgba(0, 0, 0, 0.2)",
-              fontSize: "16px",
+              fontSize: { xs: "14px", sm: "15px", md: "16px" },
               textAlign: "center",
+              padding: "10px 20px",
             }}
           >
             {snackbarMessage}

@@ -135,8 +135,7 @@ const Header = ({ setMode }) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
   const [userInfo, setUserInfo] = useState([])
-    const { token, userId, login, logout } = useAuth();
-    // const { userId } = useAuth();
+    const {user, token, userId, logout } = useAuth();
 
   const handleProfileMenuOpen = (event) => {
     setProfileMenuAnchor(event.currentTarget);
@@ -147,17 +146,15 @@ const Header = ({ setMode }) => {
   };
 
   useEffect(() => {
-    const user = localStorage.getItem("user");
+    
     if (user) {
       setIsLoggedIn(true);
       fetchUserProfile(userId, token);
     }
-  }, [token, userId] );
+  }, [token, user, userId] );
 
   const handleLogout = () => {
-    localStorage.removeItem("user");
-    setIsLoggedIn(false);
-    navigate("/regesteration");
+    logout()
   };
 
   const toggleTheme = () => {
@@ -191,7 +188,7 @@ const Header = ({ setMode }) => {
         }
       );
       setUserInfo(response.data); // Store profile data
-      console.log(response.data)
+      // console.log(response.data)
     } catch (error) {
       setError('Failed to fetch user profile. Please try again.');
       console.error(error);

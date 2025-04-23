@@ -9,6 +9,7 @@ import {
   Alert,
   Tooltip,
   useTheme,
+  useMediaQuery,
 } from "@mui/material";
 import { Facebook, Instagram, LinkedIn, GitHub } from "@mui/icons-material";
 import axios from "axios";
@@ -34,6 +35,10 @@ const getSocialMediaColor = (platform) => {
 const urlRegex = /^(https?:\/\/)?([\w.-]+)\.([a-z]{2,})(:[0-9]{1,5})?(\/.*)?$/i;
 
 const SocialMedia = () => {
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm")); // <= 600px
+  const isTablet = useMediaQuery(theme.breakpoints.between("sm", "md")); // 600px - 960px
+
   const [socialLinks, setSocialLinks] = useState({
     instagram: "",
     linkedIn: "",
@@ -47,7 +52,6 @@ const SocialMedia = () => {
   const [severity, setSeverity] = useState("info");
   const token = localStorage.getItem("accessToken");
   const { userId } = useAuth();
-  const theme = useTheme();
 
   useEffect(() => {
     const fetchData = async () => {
@@ -100,6 +104,7 @@ const SocialMedia = () => {
     setTempLinks((prev) => ({ ...prev, [platform]: value }));
     setSocialErrors((prev) => ({ ...prev, [platform]: error }));
   };
+
   const handleKeyPress = (e) => {
     if (e.key === "Enter") {
       handleSave();
@@ -181,14 +186,14 @@ const SocialMedia = () => {
     <Box
       onKeyDown={handleKeyPress}
       sx={{
-        width: "40%",
-
+        width: { xs: "100%", sm: "80%", md: "40%" }, // Responsive width
+        maxWidth: { xs: "100%", sm: "500px", md: "600px" }, // Prevent overly wide box
         mx: "auto",
-        p: { xs: 3, sm: 5 },
+        p: { xs: 2, sm: 3, md: 5 }, // Responsive padding
         borderRadius: "16px",
         boxShadow: theme.shadows[4],
         backgroundColor: theme.palette.background.paper,
-        mt: { xs: 3, md: 6 },
+        mt: { xs: 2, sm: 3, md: 6 }, // Responsive margin-top
         border: `1px solid ${theme.palette.divider}`,
       }}
     >
@@ -196,14 +201,14 @@ const SocialMedia = () => {
         sx={{
           display: "flex",
           alignItems: "center",
-          mb: 2,
+          mb: { xs: 1, sm: 2 }, // Responsive margin-bottom
           backgroundColor: theme.palette.background.paper,
         }}
       >
         <Typography
           sx={{
             color: theme.palette.text.primary,
-            fontSize: { xs: 24, md: 36 },
+            fontSize: { xs: "1.5rem", sm: "2rem", md: "2.25rem" }, // Responsive font size
             fontWeight: "bold",
             m: "auto",
             textShadow: "1px 1px 1px rgb(255, 255, 255)",
@@ -217,7 +222,7 @@ const SocialMedia = () => {
         sx={{
           display: "flex",
           flexDirection: "column",
-          gap: 2,
+          gap: { xs: 1.5, sm: 2 }, // Responsive gap between fields
           backgroundColor: theme.palette.background.paper,
         }}
       >
@@ -227,7 +232,7 @@ const SocialMedia = () => {
             sx={{
               display: "flex",
               alignItems: "center",
-              gap: 1,
+              gap: { xs: 0.5, sm: 1 }, // Responsive gap between icon and field
               flexWrap: "wrap",
             }}
           >
@@ -238,6 +243,8 @@ const SocialMedia = () => {
                 "&:hover": {
                   backgroundColor: `${getSocialMediaColor(platform)}CC`,
                 },
+                p: { xs: 0.8, sm: 1 }, // Responsive padding for IconButton
+                fontSize: { xs: "1rem", sm: "1.25rem" }, // Responsive icon size
               }}
             >
               {socialMediaIcons[platform]}
@@ -246,14 +253,15 @@ const SocialMedia = () => {
             <Tooltip
               title={socialErrors[platform] || ""}
               open={!!socialErrors[platform]}
-              placement="top"
+              placement={isMobile ? "top" : "right"} // Responsive placement
               arrow
               componentsProps={{
                 tooltip: {
                   sx: {
                     backgroundColor: "#f44336",
                     color: "#fff",
-                    fontSize: "14px",
+                    fontSize: { xs: "12px", sm: "14px" }, // Responsive font size
+                    p: { xs: 0.5, sm: 1 }, // Responsive padding
                   },
                 },
               }}
@@ -270,8 +278,8 @@ const SocialMedia = () => {
                   flex: 1,
                   "& .MuiOutlinedInput-root": {
                     borderRadius: "20px",
-                    height: "40px",
-                    fontSize: "13px",
+                    height: { xs: "36px", sm: "40px" }, // Responsive height
+                    fontSize: { xs: "12px", sm: "13px" }, // Responsive font size
                     border: "1px solid gray",
                     "& fieldset": { border: "none" },
                   },
@@ -282,16 +290,18 @@ const SocialMedia = () => {
         ))}
       </Box>
 
-      <Box sx={{ textAlign: "center", mt: 4 }}>
+      <Box sx={{ textAlign: "center", mt: { xs: 2, sm: 3, md: 4 } }}>
         <Button
           variant="contained"
           onClick={handleSave}
           onKeyDown={handleKeyPress}
           sx={{
-            width: "150px",
+            width: { xs: "80%", sm: "150px" }, // Responsive width
             borderRadius: "20px",
             backgroundColor: "#ee6c4d",
             color: "#fff",
+            fontSize: { xs: "0.9rem", sm: "1rem" }, // Responsive font size
+            py: { xs: 1, sm: 1.2 }, // Responsive padding
             "&:hover": {
               backgroundColor: "#d95b38",
             },
@@ -306,11 +316,20 @@ const SocialMedia = () => {
         autoHideDuration={2500}
         onClose={() => setSnackbarOpen(false)}
         anchorOrigin={{ vertical: "top", horizontal: "center" }}
+        sx={{
+          width: { xs: "90%", sm: "auto" }, // Responsive width
+          maxWidth: "500px",
+        }}
       >
         <Alert
           onClose={() => setSnackbarOpen(false)}
           severity={severity}
-          sx={{ borderRadius: "8px", fontSize: "16px", width: "100%" }}
+          sx={{
+            borderRadius: "8px",
+            fontSize: { xs: "14px", sm: "16px" }, // Responsive font size
+            width: "100%",
+            p: { xs: 1, sm: 1.5 }, // Responsive padding
+          }}
         >
           {message}
         </Alert>

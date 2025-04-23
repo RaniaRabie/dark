@@ -68,6 +68,8 @@ export default function StartHere() {
           content={sharedContent}
         />
 
+        <StarthereRoadmap/>
+
         {carouselSections
           .filter(
             (section) => section.newCarouselSection.toLowerCase() !== "home"

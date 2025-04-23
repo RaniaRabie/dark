@@ -39,7 +39,6 @@ import {
   BrowserRouter as Router,
   Route,
   Routes,
-  Navigate,
 } from "react-router-dom";
 
 import DevRootsOutlet from "./DevRoots/DevRootsOutlet";
@@ -77,7 +76,7 @@ import SocialMedia from "./DevRoots/pages/userProfile/SocialMedia";
 import UpdateUser from "./DevRoots/pages/userProfile/UpdateUser";
 
 function App() {
-  
+
   return (
     <Routes>
       {/* devroots paths */}

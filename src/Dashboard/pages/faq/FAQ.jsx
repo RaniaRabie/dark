@@ -39,6 +39,7 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import SaveIcon from "@mui/icons-material/Save";
 import CancelIcon from "@mui/icons-material/Cancel";
 import axios from "axios";
+import { useAuth } from "context/AuthContext";
 
 const FAQ = () => {
   const theme = useTheme();
@@ -56,13 +57,13 @@ const FAQ = () => {
 
   const [dialogOpen, setDialogOpen] = useState(false);
   const [selectedDeleteIndex, setSelectedDeleteIndex] = useState(null);
-
+  const {token} = useAuth()
   // axios instance with Authorization header
   const api = axios.create({
     baseURL: "https://careerguidance.runasp.net/api/Dashboard",
     headers: {
       "Content-Type": "application/json",
-      Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
+      Authorization: `Bearer ${token}`,
     },
   });
 
@@ -381,7 +382,11 @@ const FAQ = () => {
                     backgroundColor:
                       theme.palette.mode === "dark" ? "#444" : "inherit",
                     color:
-                      theme.palette.mode === "dark" ? "#ffffff" : "inherit",
+                      theme.palette.text.primary
+                    
+                  }}
+                  InputLabelProps={{
+                    sx: { color: theme.palette.text.primary},
                   }}
                 />
                 <TextField
@@ -393,8 +398,10 @@ const FAQ = () => {
                     mb: 2,
                     backgroundColor:
                       theme.palette.mode === "dark" ? "#444" : "inherit",
-                    color:
-                      theme.palette.mode === "dark" ? "#ffffff" : "inherit",
+                      color:"#ee6c4d",
+                  }}
+                  InputLabelProps={{
+                    sx: { color: theme.palette.text.primary},
                   }}
                 />
                 <Button

@@ -19,12 +19,13 @@ import axios from "axios";
 import { useForm } from "react-hook-form";
 import { Link, useNavigate } from "react-router-dom";
 import { Visibility, VisibilityOff } from "@mui/icons-material";
+import { useAuth } from "context/AuthContext";
 
 const Login = () => {
   const [openSnackbar, setOpenSnackbar] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
-
   const [rememberMe, setRememberMe] = useState(false);
+  
   // Email Validation
   const [signInEmail, setSignInEmail] = useState("");
 
@@ -35,21 +36,19 @@ const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
 
   /////////////////////////////////////////////////
-  //Token , RefreshToken
-  axios.interceptors.request.use((request) => {
-    console.log("Starting Request", JSON.stringify(request.data, null, 2));
-    return request;
-  });
+
+
+  const { register, handleSubmit } = useForm();
   const navigate = useNavigate();
+  const { login } = useAuth(); // Get login function from AuthContext
+
   // Function to handle closing the Snackbar
   const handleCloseSnackbar = () => {
     setOpenSnackbar(false);
     setErrorMessage(""); // Clear the error message after closing
   };
 
-  // login api with token and refresh token
-  const { register, handleSubmit } = useForm(); // Assuming you're using react-hook-form
-
+  // Login API call
   const onSubmit2 = async (data) => {
     const LoginData = {
       EmailOrUsername: data.signInEmail,
@@ -67,6 +66,9 @@ const Login = () => {
 
       const { role, token: accessToken, refreshToken, ...otherData } = response.data;
 
+      // Store user data and tokens using AuthContext's login function
+      login({ role, ...otherData }, accessToken, refreshToken);
+
       // Navigate based on role
       if (role === "admin" || role === "Admin") {
         navigate("/dashboard"); // Navigate to admin dashboard
@@ -76,13 +78,9 @@ const Login = () => {
         navigate("/"); // Default navigation if role does not match
       }
 
-      // Store user data and tokens in localStorage
-      localStorage.setItem("user", JSON.stringify({ role, ...otherData }));
-      localStorage.setItem("accessToken", accessToken);
-      localStorage.setItem("refreshToken", refreshToken);
-
       console.log("Login successful:", response.data);
-      window.location.reload();
+      window.location.reload(); // Consider removing if not necessary
+
     } catch (error) {
       console.log("Error during API call:", error);
 
@@ -93,8 +91,8 @@ const Login = () => {
         (error.response && error.response.status === 401)
       ) {
         const errorMessage =
-          error.response.data.errors[1] || "Invalid Email or Password."; // Show the specific error message from API
-        setErrorMessage(errorMessage); // Set the error message
+          error.response.data.errors?.[1] || "Invalid Email or Password.";
+        setErrorMessage(errorMessage);
       } else {
         setErrorMessage("An unexpected error occurred.");
       }
@@ -103,59 +101,6 @@ const Login = () => {
     }
   };
 
-
-
-  
-  const getToken = () => {
-    return localStorage.getItem("accessToken");
-  };
-
-  const getRefreshToken = () => {
-    return localStorage.getItem("refreshToken");
-  };
-  const fetchData = async () => {
-    const token = getToken();
-
-    try {
-      const response = await axios.get("https://yourapi.com/endpoint", {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      console.log("Data fetched successfully:", response.data);
-    } catch (error) {
-      console.error("Error fetching data:", error);
-
-      //  handle token expiration and refresh
-      if (error.response && error.response.status === 401) {
-        console.log("Token expired, refreshing...");
-        await refreshAccessToken(); // Implement refresh logic
-      }
-    }
-  };
-
-  const refreshAccessToken = async () => {
-    const refreshToken = getRefreshToken();
-
-    try {
-      const response = await axios.post(
-        "https://careerguidance.runasp.net/Auth/RefreshToken",
-        {
-          refreshToken: refreshToken,
-        }
-      );
-
-      // Store the new access token
-      localStorage.setItem("accessToken", response.data.accessToken);
-      console.log(
-        "Access token refreshed successfully:",
-        response.data.accessToken
-      );
-    } catch (error) {
-      console.error("Error refreshing access token:", error);
-    }
-  };
   const handleToggleShowPassword = () => setShowPassword(!showPassword);
 
   const theme = useTheme();

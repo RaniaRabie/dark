@@ -16,17 +16,17 @@ import {
   Snackbar,
   Alert,
 } from "@mui/material";
-import { useParams, useNavigate, useLocation } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import FacebookIcon from "@mui/icons-material/Facebook";
 import InstagramIcon from "@mui/icons-material/Instagram";
 import LinkedInIcon from "@mui/icons-material/LinkedIn";
 import GitHubIcon from "@mui/icons-material/GitHub";
 import axios from "axios";
+import { useAuth } from "context/AuthContext";
 
 export default function UserProfile() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const location = useLocation();
   const [userData, setUserData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -37,98 +37,60 @@ export default function UserProfile() {
     severity: "success",
   });
   const theme = useTheme();
+  const {token} = useAuth()
 
-  const refreshAccessToken = async () => {
-    const storedRefresh = localStorage.getItem("refreshToken");
-    if (!storedRefresh) throw new Error("No refresh token found");
 
-    try {
-      const response = await axios.post(
-        "https://careerguidance.runasp.net/Auth/refresh",
-        { refreshToken: storedRefresh }
-      );
-      console.log("Refresh Token Response:", response.data);
-      const { accessToken, refreshToken: newRefreshToken } = response.data;
-      localStorage.setItem("accessToken", accessToken);
-      localStorage.setItem("refreshToken", newRefreshToken);
-      return accessToken;
-    } catch (refreshErr) {
-      console.error("Token refresh failed:", refreshErr);
-      throw refreshErr;
-    }
+  // Helper to format ISO date to locale string
+  const formatDate = (dateString) => {
+    if (!dateString) return null;
+    const date = new Date(dateString);
+    if (isNaN(date) || date.getFullYear() < 1000) return null; // لو التاريخ أقل من سنة 1000، نرجع null
+    return date.toLocaleDateString(undefined, {
+      year: "numeric",
+      month: "numeric",
+      day: "numeric",
+    });
   };
+
 
   useEffect(() => {
     const fetchUser = async () => {
       setLoading(true);
       setError(null);
 
-      // Validate ID
-      if (!id) {
-        setError("Invalid user ID.");
-        setLoading(false);
-        return;
-      }
+      try {
+        if (!token) throw new Error("No access token found");
 
-      // Fallback to location.state if available
-      if (location.state) {
-        setUserData(location.state);
-        setLoading(false);
-        return;
-      }
-
-      const getUser = async (token) => {
-        return axios.get(
+        // Use apiClient for the API call, which handles token refresh
+        const response = await axios.get(
           `https://careerguidance.runasp.net/api/Dashboard/GetuserById/${id}`,
           { headers: { Authorization: `Bearer ${token}` } }
         );
-      };
 
-      try {
-        let token = localStorage.getItem("accessToken");
-        console.log("Access Token:", token);
-        if (!token) throw new Error("No access token found");
-
-        let response;
-        try {
-          response = await getUser(token);
-        } catch (err) {
-          console.error("API Error:", err.response?.data, err.response?.status);
-          if (err.response?.status === 401 || err.response?.status === 403) {
-            token = await refreshAccessToken();
-            response = await getUser(token);
-          } else if (err.response?.status === 404) {
-            throw new Error("User not found.");
-          } else {
-            throw err;
-          }
-        }
-
-        const user = response.data;
-        const formattedData = {
-          id: user.id,
-          userName: user.userName || "N/A",
-          name: user.name || "N/A",
-          email: user.email || "N/A",
-          role: user.role || "N/A",
-          image: user.imageUrl || "N/A",
-          country: user.country || "N/A",
-          phoneNumber: user.phoneNumber || "N/A",
-          dateOfBirth: user.dateOfBirth || "N/A",
-          facebook: user.facebook || "N/A",
-          github: user.github || "N/A",
-          instagram: user.instagram || "N/A",
-          linkedin: user.linkedin || "N/A",
-        };
-
-        setUserData(formattedData);
+        const u = response.data;
+        setUserData({
+          id: u.id || id,
+          userName: u.userName || "null",
+          name: u.name || "null",
+          email: u.email || "null",
+          role: u.role || "null",
+          image: u.imageUrl || "null",
+          country: u.country || "null",
+          phoneNumber: u.phoneNumber || "null",
+          dateOfBirth: formatDate(u.dateOfBirth),
+          facebook: u.facebook || "null",
+          github: u.github || "null",
+          instagram: u.instagram || "null",
+          linkedin: u.linkedin || "null",
+          frontendRoadmap: u.frontendRoadmap || "null",
+          backendRoadmap: u.backendRoadmap || "null",
+        });
       } catch (err) {
-        console.error("Error fetching user:", err);
-        if (err.message === "User not found.") {
+        if (err.response?.status === 404) {
           setError("User not found. Redirecting...");
           setTimeout(() => navigate("/dashboard/allusers"), 3000);
         } else {
-          setError("Failed to fetch user data. Try again later.");
+          setError(err.message || "Failed to fetch user data. Try again later.");
         }
       } finally {
         setLoading(false);
@@ -136,61 +98,33 @@ export default function UserProfile() {
     };
 
     fetchUser();
-  }, [id, location.state, navigate]);
+  }, [id, navigate, token]); // Add token as a dependency
 
-  const handleDeleteUser = async (id) => {
+  const handleDeleteUser = async () => {
     try {
-      let token = localStorage.getItem("accessToken");
       if (!token) throw new Error("No authentication token found");
 
-      const headers = { Authorization: `Bearer ${token}` };
-      let response;
-      try {
-        response = await axios.delete(
-          `https://careerguidance.runasp.net/api/Dashboard/DeleteUser/${id}`,
-          { headers }
-        );
-      } catch (err) {
-        if (err.response?.status === 401 || err.response?.status === 403) {
-          token = await refreshAccessToken();
-          response = await axios.delete(
-            `https://careerguidance.runasp.net/api/Dashboard/DeleteUser/${id}`,
-            { headers: { Authorization: `Bearer ${token}` } }
-          );
-        } else {
-          throw err;
-        }
-      }
+      // Use apiClient for the delete request
+      await axios.delete(
+        `https://careerguidance.runasp.net/api/Dashboard/DeleteUser/${id}`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
 
       setSnackbar({
         open: true,
         message: "User deleted successfully.",
         severity: "success",
       });
-      setTimeout(() => {
-        navigate("/dashboard/allusers");
-      }, 2000);
+      setTimeout(() => navigate("/dashboard/allusers"), 2000);
     } catch (err) {
       let msg = "An unknown error occurred. Please try again.";
       if (err.response?.data?.errors) {
-        const errors = err.response.data.errors;
-        if (
-          errors.some((e) => e.message === "User.NoUsersFound") ||
-          errors.some((e) => e.message === "There is no Users Right now")
-        ) {
-          msg = "User not found or no users to delete.";
-        } else {
-          msg = "An error occurred while deleting.";
-        }
-      } else if (err.response?.status === 401 || err.response?.status === 403) {
+        msg = err.response.data.errors.map((e) => e.message).join(", ");
+      } else if (err.message === "No authentication token found") {
         msg = "Session expired. Please login again.";
       }
 
-      setSnackbar({
-        open: true,
-        message: msg,
-        severity: "error",
-      });
+      setSnackbar({ open: true, message: msg, severity: "error" });
       console.error(err);
     }
   };
@@ -198,10 +132,9 @@ export default function UserProfile() {
   const handleOpenConfirm = () => setConfirmOpen(true);
   const handleCloseConfirm = () => setConfirmOpen(false);
   const handleConfirmDelete = () => {
-    handleDeleteUser(userData.id);
+    handleDeleteUser();
     handleCloseConfirm();
   };
-
   const handleCloseSnackbar = (_, reason) => {
     if (reason === "clickaway") return;
     setSnackbar((s) => ({ ...s, open: false }));
@@ -244,9 +177,11 @@ export default function UserProfile() {
       >
         Profile
       </Typography>
-
       <Box textAlign="center" mb={4}>
         <Avatar
+        src={userData.image}
+        alt={userData.userName[0].toUpperCase()}
+
           sx={{
             width: 100,
             height: 100,
@@ -256,21 +191,20 @@ export default function UserProfile() {
             boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.2)",
           }}
         >
-          {userData?.name?.[0]?.toUpperCase()}
-        </Avatar>
-      </Box>
 
+        </Avatar>
+        
+      </Box>
       <Section title="Information">
         <CardContentGrid
           data={[
-            { label: "Username:", field: "name" },
-            { label: "Name:", field: "userName" },
+            { label: "Username:", field: "userName" },
+            { label: "Name:", field: "name" },
             { label: "Role:", field: "role" },
           ]}
           userData={userData}
         />
       </Section>
-
       <Section title="Communication">
         <CardContentGrid
           data={[
@@ -282,20 +216,13 @@ export default function UserProfile() {
           userData={userData}
         />
       </Section>
-
       <Section title="Social Media">
         <CardContentGrid
           data={[
             {
               label: (
                 <span style={{ display: "flex", alignItems: "center" }}>
-                  <FacebookIcon
-                    style={{
-                      color: "#3b5998",
-                      marginBottom: "3px",
-                      marginRight: "5px",
-                    }}
-                  />
+                  <FacebookIcon style={{ color: "#3b5998", marginRight: 5 }} />
                   Facebook:
                 </span>
               ),
@@ -304,13 +231,7 @@ export default function UserProfile() {
             {
               label: (
                 <span style={{ display: "flex", alignItems: "center" }}>
-                  <GitHubIcon
-                    style={{
-                      color: "#000000",
-                      marginBottom: "3px",
-                      marginRight: "5px",
-                    }}
-                  />
+                  <GitHubIcon style={{ color: "#000", marginRight: 5 }} />
                   GitHub:
                 </span>
               ),
@@ -319,13 +240,7 @@ export default function UserProfile() {
             {
               label: (
                 <span style={{ display: "flex", alignItems: "center" }}>
-                  <InstagramIcon
-                    style={{
-                      color: "#C13584",
-                      marginBottom: "3px",
-                      marginRight: "5px",
-                    }}
-                  />
+                  <InstagramIcon style={{ color: "#C13584", marginRight: 5 }} />
                   Instagram:
                 </span>
               ),
@@ -334,13 +249,7 @@ export default function UserProfile() {
             {
               label: (
                 <span style={{ display: "flex", alignItems: "center" }}>
-                  <LinkedInIcon
-                    style={{
-                      color: "#0077b5",
-                      marginBottom: "3px",
-                      marginRight: "5px",
-                    }}
-                  />
+                  <LinkedInIcon style={{ color: "#0077b5", marginRight: 5 }} />
                   LinkedIn:
                 </span>
               ),
@@ -350,7 +259,6 @@ export default function UserProfile() {
           userData={userData}
         />
       </Section>
-
       <Section title="Roadmaps">
         <CardContentGrid
           data={[
@@ -360,7 +268,6 @@ export default function UserProfile() {
           userData={userData}
         />
       </Section>
-
       <Box textAlign="center" mb={4}>
         <Button
           variant="contained"
@@ -378,7 +285,6 @@ export default function UserProfile() {
           Delete User
         </Button>
       </Box>
-
       <Dialog open={confirmOpen} onClose={handleCloseConfirm}>
         <DialogTitle>Confirm Delete</DialogTitle>
         <DialogContent>
@@ -394,7 +300,6 @@ export default function UserProfile() {
           </Button>
         </DialogActions>
       </Dialog>
-
       <Snackbar
         open={snackbar.open}
         autoHideDuration={4000}
@@ -469,7 +374,7 @@ function CardContentGrid({ data, userData }) {
               <Typography
                 sx={{ fontSize: "1rem", fontWeight: "500", color: "gray" }}
               >
-                {userData[field] || "N/A"}
+                {userData[field] || "null"}
               </Typography>
             </Box>
           </Grid>

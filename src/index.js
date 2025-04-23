@@ -24,13 +24,25 @@ import reportWebVitals from "./reportWebVitals";
 import { BrowserRouter } from "react-router-dom";
 import { GoogleOAuthProvider } from "@react-oauth/google";
 import { RoadmapProvider } from "./Dashboard/pages/roadmap/create/RoadmapContext";
-import { AuthProvider } from "./context/AuthContext";
+import { AuthProvider, useAuth } from "./context/AuthContext";
+import { setUpdateTokensCallback } from "./services/auth";
+
+// Component to register the updateTokens callback
+const TokenSync = () => {
+  const { updateTokens } = useAuth();
+  React.useEffect(() => {
+    setUpdateTokensCallback(updateTokens);
+    return () => setUpdateTokensCallback(null); // Cleanup on unmount
+  }, [updateTokens]);
+  return null;
+};
 
 const root = ReactDOM.createRoot(document.getElementById("root"));
 root.render(
   <BrowserRouter>
     <GoogleOAuthProvider clientId="863819354066-fafo7lel76kd78g15q5bf391t0mrvmuj.apps.googleusercontent.com">
     <AuthProvider>
+    <TokenSync />
         <RoadmapProvider>
           <App />
         </RoadmapProvider>

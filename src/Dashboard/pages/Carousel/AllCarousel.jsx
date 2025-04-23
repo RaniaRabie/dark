@@ -54,7 +54,7 @@ const AllCarousel = () => {
       )
       .then((response) => {
         setCarousels(response.data);
-        console.log(response.data);
+        // console.log(response.data);
       })
       .catch((error) => {
         console.error("Error fetching Carousel Sections:", error);

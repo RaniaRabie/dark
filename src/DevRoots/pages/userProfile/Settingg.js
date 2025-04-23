@@ -10,6 +10,7 @@ import {
   Snackbar,
   Alert,
   useTheme,
+  useMediaQuery,
 } from "@mui/material";
 import {
   Visibility,
@@ -22,7 +23,11 @@ import axios from "axios";
 import { useAuth } from "context/AuthContext";
 
 const Setting = () => {
-  const handleCloseSnackbar = () => setOpenSnackbar(false);
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm")); // <= 600px
+  const isTablet = useMediaQuery(theme.breakpoints.between("sm", "md")); // 600px - 960px
+
+  // State declarations
   const [error, setError] = useState("");
   const [passwordMatch, setPasswordMatch] = useState(true);
   const [currentPassword, setCurrentPassword] = useState("");
@@ -33,13 +38,14 @@ const Setting = () => {
   const [openSnackbar, setOpenSnackbar] = useState(false);
   const [tooltipOpen, setTooltipOpen] = useState(false);
   const [confirmTooltipOpen, setConfirmTooltipOpen] = useState(false);
-  const handleToggleShowPassword = () => setShowPassword(!showPassword);
   const [isTypingPassword, setIsTypingPassword] = useState(false);
 
-  //////////////////////////////////////////
   const { userId } = useAuth();
 
-  // Verify the current password
+  // Handlers
+  const handleToggleShowPassword = () => setShowPassword(!showPassword);
+  const handleCloseSnackbar = () => setOpenSnackbar(false);
+
   const handleSubmit = async () => {
     const validations = {
       minLength: password.length >= 8,
@@ -49,6 +55,7 @@ const Setting = () => {
       hasSpecialChar: /[!@#$%^&*]/.test(password),
       match: password === confirmPassword,
     };
+
     if (password === currentPassword) {
       setErrorMessage(
         "New password must not be the same as the current password"
@@ -79,23 +86,14 @@ const Setting = () => {
 
       const userData = verifyResponse.data;
 
-      // if (userData.OldPassword !== currentPassword) {
-      //   setErrorMessage("Current password is incorrect.");
-      //   setOpenSnackbar(true);
-      //   return;
-      // }
-
       await axios.put(
         `https://careerguidance.runasp.net/api/userProfile/UpdatePassword/${userId}`,
         {
           ...userData,
           OldPassword: currentPassword,
           NewPassword: password,
-          confirmPassword:password
-          
-          
+          confirmPassword: password,
         },
-          
         {
           headers: {
             "Content-Type": "application/json",
@@ -103,73 +101,80 @@ const Setting = () => {
           },
         }
       );
-
-      setErrorMessage(" Password updated successfully");
+      setErrorMessage("Password updated successfully");
       setOpenSnackbar(true);
       setCurrentPassword("");
       setPassword("");
       setConfirmPassword("");
     } catch (error) {
-      const msg =
-        error.response?.data?.errors?.[0] || "An unexpected error occurred.";
-      setErrorMessage(` ${msg}`);
+      let msg = "An unexpected error occurred.";
+      if (error.response && error.response.data?.errors) {
+        const backendErrors = error.response.data.errors;
+        if (Array.isArray(backendErrors)) {
+          msg = backendErrors[0] || msg;
+        } else if (typeof backendErrors === "object") {
+          const firstKey = Object.keys(backendErrors)[0];
+          msg = backendErrors[firstKey]?.[0] || msg;
+        }
+      }
+      setErrorMessage(msg);
       setOpenSnackbar(true);
     }
   };
-    
-
-  ///////////////////////
+  // Responsive TextField styles
   const textFieldStyle = {
     "& input:-webkit-autofill": {
-      WebkitBoxShadow: "0 0 0 10px transparent inset", // Make the autofill background transparent
+      WebkitBoxShadow: "0 0 0 10px transparent inset",
       backgroundColor: "transparent",
-      WebkitTextFillColor: "#293241", // Maintain your desired text color
-      transition: "background-color 5000s ease-in-out 0s", // A trick to override autofill background
+      WebkitTextFillColor: theme.palette.text.primary,
+      transition: "background-color 5000s ease-in-out 0s",
     },
     "& input:-webkit-autofill:focus, & input:-webkit-autofill:hover": {
       backgroundColor: "transparent",
-      WebkitBoxShadow: "0 0 0 10px transparent inset", // Keep it transparent on focus/hover
-      transition: "background-color 5000s ease-in-out 0s", // Maintain the background color override
+      WebkitBoxShadow: "0 0 0 10px transparent inset",
+      transition: "background-color 5000s ease-in-out 0s",
     },
-
     "& .MuiOutlinedInput-root": {
       borderRadius: "25px",
-      width: "320px",
-      height: "37px",
-      margin: "15px 0",
+      width: { xs: "100%", sm: "320px" },
+      height: { xs: "40px", sm: "37px" },
+      margin: { xs: "10px 0", sm: "15px 0" },
       border: "1px solid gray",
       "& fieldset": {
-        border: "none", // Remove the default border
+        border: "none",
       },
     },
     "& .MuiInputBase-root": {
       "&.Mui-focused": {
-        borderColor: "#ee6c4d", // Remove focus color
+        borderColor: "#ee6c4d",
       },
+    },
+    "& .MuiInputLabel-root": {
+      fontSize: { xs: "0.9rem", sm: "1rem" },
     },
   };
 
-  const theme = useTheme();
   return (
     <Box
       sx={{
-        maxWidth: { xs: "100%", sm: 500 }, // Use full width on extra small screens
+        maxWidth: { xs: "100%", sm: "500px", md: "600px" },
         mx: "auto",
-        p: { xs: 2, sm: 4 }, // Adjust padding based on screen size
+        p: { xs: 2, sm: 3, md: 4 },
         borderRadius: 2,
-        boxShadow: 2,
+        boxShadow: { xs: 1, sm: 2 },
         backgroundColor: theme.palette.background.paper,
+        minHeight: { xs: "auto", md: "400px" },
       }}
     >
-      <Box sx={{ display: "flex", alignItems: "center", mb: 2 }}>
+      {/* Title */}
+      <Box sx={{ display: "flex", alignItems: "center", mb: { xs: 1, sm: 2 } }}>
         <Typography
-          //  variant="h5" align="center" gutterBottom
           sx={{
             color: theme.palette.text.primary,
-            fontSize: { xs: 24, md: 36 }, // Adjust font size for different screens
+            fontSize: { xs: "1.5rem", sm: "2rem", md: "2.25rem" },
             fontWeight: "bold",
             m: "auto",
-            textShadow: "1px 1px 1pxrgb(255, 255, 255)",
+            textShadow: "1px 1px 1px rgba(255, 255, 255, 0.5)",
           }}
         >
           Security Settings
@@ -180,15 +185,15 @@ const Setting = () => {
         sx={{
           display: "flex",
           flexDirection: "column",
-          alignItems: "center", // تخلي العناصر في النص أفقيًا
+          alignItems: "center",
           justifyContent: "center",
           width: "100%",
-          px: 7,
-          textAlign: "center", // تخلي النص في الوسط برضو
+          px: { xs: 2, sm: 4, md: 7 },
+          textAlign: "center",
         }}
       >
         {/* Current Password Field */}
-        <Box sx={{ width: "100%", maxWidth: 600 }}>
+        <Box sx={{ width: "100%", maxWidth: { xs: "100%", sm: "400px" } }}>
           <TextField
             label="Current Password"
             type="password"
@@ -201,22 +206,22 @@ const Setting = () => {
             InputProps={{
               startAdornment: (
                 <InputAdornment position="start">
-                  <div
-                    style={{
+                  <Box
+                    sx={{
                       display: "flex",
                       alignItems: "center",
                       justifyContent: "center",
-                      border: "2px solid #ee6c4d",
-                      borderLeft: "none",
-                      borderTop: "none",
-                      borderBottom: "none",
-                      borderRadius: "10px 0 0 10px",
+                      borderRight: "2px solid #ee6c4d",
+                      pr: 1,
                     }}
                   >
                     <KeyIcon
-                      style={{ color: "#ee6c4d", fontSize: 30, marginRight: 5 }}
+                      sx={{
+                        color: "#ee6c4d",
+                        fontSize: { xs: 24, sm: 30 },
+                      }}
                     />
-                  </div>
+                  </Box>
                 </InputAdornment>
               ),
             }}
@@ -224,13 +229,22 @@ const Setting = () => {
         </Box>
 
         {error && (
-          <Typography color="error" sx={{ mt: 1 }}>
+          <Typography
+            color="error"
+            sx={{ mt: 1, fontSize: { xs: "0.85rem", sm: "1rem" } }}
+          >
             {error}
           </Typography>
         )}
 
         {/* New Password Field */}
-        <Box sx={{ width: "100%", maxWidth: 400, position: "relative" }}>
+        <Box
+          sx={{
+            width: "100%",
+            maxWidth: { xs: "100%", sm: "400px" },
+            position: "relative",
+          }}
+        >
           <TextField
             label="New Password"
             type={showPassword ? "text" : "password"}
@@ -248,22 +262,22 @@ const Setting = () => {
             InputProps={{
               startAdornment: (
                 <InputAdornment position="start">
-                  <div
-                    style={{
+                  <Box
+                    sx={{
                       display: "flex",
                       alignItems: "center",
                       justifyContent: "center",
-                      border: "2px solid #ee6c4d",
-                      borderLeft: "none",
-                      borderTop: "none",
-                      borderBottom: "none",
-                      borderRadius: "10px 0 0 10px",
+                      borderRight: "2px solid #ee6c4d",
+                      pr: 1,
                     }}
                   >
                     <LockIcon
-                      style={{ color: "#ee6c4d", fontSize: 30, marginRight: 5 }}
+                      sx={{
+                        color: "#ee6c4d",
+                        fontSize: { xs: 24, sm: 30 },
+                      }}
                     />
-                  </div>
+                  </Box>
                 </InputAdornment>
               ),
             }}
@@ -272,11 +286,11 @@ const Setting = () => {
           {/* Tooltip for New Password */}
           <Tooltip
             title={
-              <Box sx={{ width: 230, p: 1 }}>
+              <Box sx={{ width: { xs: 180, sm: 230 }, p: 1 }}>
                 <Typography
                   variant="h6"
                   sx={{
-                    fontSize: 13,
+                    fontSize: { xs: 11, sm: 13 },
                     fontWeight: "bold",
                     color: "#293241",
                     mb: 1,
@@ -315,12 +329,12 @@ const Setting = () => {
                     sx={{
                       display: "flex",
                       alignItems: "center",
-                      fontSize: "12px",
+                      fontSize: { xs: 10, sm: 12 },
                       color: item.valid ? "green" : "red",
                       mb: 0.5,
                     }}
                   >
-                    {item.valid ? "✔" : "✖"}&nbsp;{item.label}
+                    {item.valid ? "✔" : "✖"} {item.label}
                   </Typography>
                 ))}
               </Box>
@@ -335,8 +349,8 @@ const Setting = () => {
                 /[!@#$%^&*]/.test(password),
                 password !== currentPassword,
               ].every(Boolean)
-            } // طول ما فيه شرط مش متحقق يفضل ظاهر
-            placement="right-start"
+            }
+            placement={isMobile ? "top" : isTablet ? "bottom" : "right-start"}
             arrow
             PopperProps={{
               sx: {
@@ -346,28 +360,22 @@ const Setting = () => {
                   boxShadow: 2,
                   borderRadius: "8px",
                 },
+                "& .MuiTooltip-arrow": {
+                  color: "#f5f5f5",
+                },
               },
               modifiers: [
-                {
-                  name: "offset",
-                  options: {
-                    offset: [-15, -15],
-                  },
-                },
-                {
-                  name: "preventOverflow",
-                  options: {
-                    padding: 0,
-                  },
-                },
+                { name: "offset", options: { offset: [0, -10] } },
+                { name: "preventOverflow", options: { padding: 8 } },
               ],
             }}
           >
             <Box
               sx={{
                 position: "absolute",
-                top: "50%",
-                right: "-30px",
+                top: isMobile ? "0" : "50%",
+                right: isMobile ? "50%" : "-30px",
+                transform: isMobile ? "translateX(50%)" : "none",
                 width: 0,
                 height: 0,
               }}
@@ -376,7 +384,13 @@ const Setting = () => {
         </Box>
 
         {/* Confirm Password Field */}
-        <Box sx={{ width: "100%", maxWidth: 500, position: "relative" }}>
+        <Box
+          sx={{
+            width: "100%",
+            maxWidth: { xs: "100%", sm: "400px" },
+            position: "relative",
+          }}
+        >
           <TextField
             label="Confirm Password"
             type={showPassword ? "text" : "password"}
@@ -390,27 +404,32 @@ const Setting = () => {
             InputProps={{
               startAdornment: (
                 <InputAdornment position="start">
-                  <div
-                    style={{
+                  <Box
+                    sx={{
                       display: "flex",
                       alignItems: "center",
                       justifyContent: "center",
-                      border: "2px solid #ee6c4d",
-                      borderLeft: "none",
-                      borderTop: "none",
-                      borderBottom: "none",
-                      borderRadius: "10px 0 0 10px",
+                      borderRight: "2px solid #ee6c4d",
+                      pr: 1,
                     }}
                   >
                     <EnhancedEncryptionIcon
-                      style={{ color: "#ee6c4d", fontSize: 30, marginRight: 5 }}
+                      sx={{
+                        color: "#ee6c4d",
+                        fontSize: { xs: 24, sm: 30 },
+                      }}
                     />
-                  </div>
+                  </Box>
                 </InputAdornment>
               ),
               endAdornment: (
                 <InputAdornment position="end">
-                  <IconButton onClick={handleToggleShowPassword}>
+                  <IconButton
+                    onClick={handleToggleShowPassword}
+                    aria-label={
+                      showPassword ? "Hide password" : "Show password"
+                    }
+                  >
                     {showPassword ? <VisibilityOff /> : <Visibility />}
                   </IconButton>
                 </InputAdornment>
@@ -418,12 +437,12 @@ const Setting = () => {
             }}
           />
 
-          {/* Tooltip for Confirm Password Match */}
+          {/* Tooltip for Confirm Password */}
           <Tooltip
             title={
               <Typography
                 sx={{
-                  fontSize: 13,
+                  fontSize: { xs: 11, sm: 13 },
                   color: password === confirmPassword ? "green" : "red",
                   display: "flex",
                   alignItems: "center",
@@ -436,7 +455,7 @@ const Setting = () => {
               </Typography>
             }
             open={confirmPassword.length > 0 && password !== confirmPassword}
-            placement="right-start"
+            placement={isMobile ? "top" : isTablet ? "bottom" : "right-start"}
             arrow
             PopperProps={{
               sx: {
@@ -447,28 +466,22 @@ const Setting = () => {
                   borderRadius: "8px",
                   p: 1,
                 },
+                "& .MuiTooltip-arrow": {
+                  color: "#f5f5f5",
+                },
               },
               modifiers: [
-                {
-                  name: "offset",
-                  options: {
-                    offset: [-10, -15],
-                  },
-                },
-                {
-                  name: "preventOverflow",
-                  options: {
-                    padding: 0,
-                  },
-                },
+                { name: "offset", options: { offset: [0, -10] } },
+                { name: "preventOverflow", options: { padding: 8 } },
               ],
             }}
           >
             <Box
               sx={{
                 position: "absolute",
-                top: "50%",
-                right: "-20px",
+                top: isMobile ? "0" : "50%",
+                right: isMobile ? "50%" : "-20px",
+                transform: isMobile ? "translateX(50%)" : "none",
                 width: 0,
                 height: 0,
               }}
@@ -478,15 +491,19 @@ const Setting = () => {
       </Box>
 
       {/* Submit Button */}
-      <Box sx={{ display: "flex", justifyContent: "center" }}>
+      <Box
+        sx={{ display: "flex", justifyContent: "center", mt: { xs: 2, sm: 3 } }}
+      >
         <Button
           variant="contained"
           onClick={handleSubmit}
           sx={{
-            width: "200px",
+            width: { xs: "80%", sm: "200px" },
             borderRadius: "20px",
             backgroundColor: "#ee6c4d",
             color: "#fff",
+            fontSize: { xs: "0.9rem", sm: "1rem" },
+            py: { xs: 1, sm: 1.5 },
             "&:hover": {
               backgroundColor: "#d95b38",
             },
@@ -494,32 +511,38 @@ const Setting = () => {
         >
           Update Password
         </Button>
-        <Snackbar
-          open={openSnackbar}
-          autoHideDuration={6000}
-          onClose={handleCloseSnackbar}
-          anchorOrigin={{ vertical: "top", horizontal: "center" }}
-        >
-          <Alert
-            onClose={handleCloseSnackbar}
-            severity="error"
-            sx={{
-              width: "100%",
-              backgroundColor: "#F5F5DC",
-              color: "#ee6c4d",
-              borderRadius: "8px",
-              boxShadow: "0 4px 6px rgba(0, 0, 0, 0.2)",
-              fontSize: "16px",
-              textAlign: "center",
-            }}
-          >
-            {errorMessage}
-          </Alert>
-        </Snackbar>
       </Box>
+
+      {/* Snackbar */}
+      <Snackbar
+        open={openSnackbar}
+        autoHideDuration={6000}
+        onClose={handleCloseSnackbar}
+        anchorOrigin={{ vertical: "top", horizontal: "center" }}
+        sx={{
+          width: { xs: "90%", sm: "auto" },
+          maxWidth: "500px",
+        }}
+      >
+        <Alert
+          onClose={handleCloseSnackbar}
+          severity={errorMessage.includes("successfully") ? "success" : "error"}
+          sx={{
+            width: "100%",
+            backgroundColor: "#F5F5DC",
+            color: "#ee6c4d",
+            borderRadius: "8px",
+            boxShadow: "0 4px 6px rgba(0, 0, 0, 0.2)",
+            fontSize: { xs: "0.85rem", sm: "1rem" },
+            p: { xs: 1, sm: 2 },
+            textAlign: "center",
+          }}
+        >
+          {errorMessage}
+        </Alert>
+      </Snackbar>
     </Box>
   );
 };
 
 export default Setting;
-

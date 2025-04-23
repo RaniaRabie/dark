@@ -142,10 +142,12 @@ export default function Carousel({ items }) {
           <SwiperSlide key={item.id}>
             <Link to={item.carouselUrl} style={{ textDecoration: "none" }}>
               <ImageListItem sx={{ position: "relative" }}>
-                <StateTag state={item.carouselState}>
-                  <Typography>{item.carouselState}</Typography>
-                  {getStateIcon(item.carouselState)}
-                </StateTag>
+              {item.carouselState && (
+                  <StateTag state={item.carouselState}>
+                    <Typography>{item.carouselState}</Typography>
+                    {getStateIcon(item.carouselState)}
+                  </StateTag>
+                )}
 
                 <img
                   // @ts-ignore

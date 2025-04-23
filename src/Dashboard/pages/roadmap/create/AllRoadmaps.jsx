@@ -58,6 +58,7 @@ const AllRoadmaps = () => {
           return roadmap;
         });
         setRoadmaps(parsedRoadmaps);
+        console.log(response.data)
       })
       .catch((error) => {
         console.error("Error fetching roadmaps:", error);
