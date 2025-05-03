@@ -66,27 +66,7 @@ const BaseRoadmap = ({
   };
 
   return roadmapData ? (
-    <div style={{ ...customStyles.container }}>
-      {/* <Box
-        sx={{
-          width: "80%",
-          margin: "auto",
-          minHeight: "auto",
-          p: 2,
-          backgroundColor: theme.palette.background.paper,
-          borderRadius: "10px",
-          boxShadow: "0px 4px 5px rgba(0, 0, 0, 0.1)",
-          ...customStyles.headerBox,
-        }}
-      >
-        <h2 style={{ textAlign: "center", marginBottom: "16px" }}>
-          {roadmapData.roadmapName}
-        </h2>
-        <p style={{ textAlignLast: "left" }}>
-          {roadmapData.roadmapDescription}
-        </p>
-      </Box> */}
-
+    <Box >
       <IntroductionSection
         title={roadmapData.roadmapName}
         content={roadmapData.roadmapDescription}
@@ -340,7 +320,7 @@ const BaseRoadmap = ({
           )}
         </div>
       </Drawer>
-    </div>
+    </Box>
   ) : (
     <p>Loading roadmap details...</p>
   );

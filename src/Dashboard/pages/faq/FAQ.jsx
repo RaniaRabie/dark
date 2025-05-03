@@ -39,7 +39,8 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import SaveIcon from "@mui/icons-material/Save";
 import CancelIcon from "@mui/icons-material/Cancel";
 import axios from "axios";
-import { useAuth } from "context/AuthContext";
+import { api } from "../../../services/axiosInstance";
+
 
 const FAQ = () => {
   const theme = useTheme();
@@ -57,21 +58,13 @@ const FAQ = () => {
 
   const [dialogOpen, setDialogOpen] = useState(false);
   const [selectedDeleteIndex, setSelectedDeleteIndex] = useState(null);
-  const {token} = useAuth()
-  // axios instance with Authorization header
-  const api = axios.create({
-    baseURL: "https://careerguidance.runasp.net/api/Dashboard",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`,
-    },
-  });
+  // const api = useAxios();
 
   // Fetch all FAQs on mount
   useEffect(() => {
     const fetchFAQs = async () => {
       try {
-        const response = await api.get("/GetAllQuestions");
+        const response = await api.get("/api/Dashboard/GetAllQuestions");
         setFaqData(response.data);
       } catch (error) {
         console.error("Error fetching FAQs:", error);
@@ -88,13 +81,13 @@ const FAQ = () => {
     if (!newQuestion || !newAnswer) return;
 
     try {
-      await api.post("/AddQuestion", {
+      await api.post("/api/Dashboard/AddQuestion", {
         question: newQuestion,
         answer: newAnswer,
       });
 
       // Refresh FAQ list
-      const { data } = await api.get("/GetAllQuestions");
+      const { data } = await api.get("api/Dashboard/GetAllQuestions");
       setFaqData(data);
 
       setSnackbarMessage("Question added successfully!");
@@ -122,7 +115,7 @@ const FAQ = () => {
     const faqToDelete = faqData[selectedDeleteIndex];
 
     try {
-      await api.delete(`/DeleteQuestion/${faqToDelete.id}`);
+      await api.delete(`/api/Dashboard/DeleteQuestion/${faqToDelete.id}`);
 
       setFaqData((prev) =>
         prev.filter((_, i) => i !== selectedDeleteIndex)
@@ -152,7 +145,7 @@ const FAQ = () => {
     const faqToUpdate = faqData[index];
 
     try {
-      await api.put(`/UpdateQuestion/${faqToUpdate.id}`, {
+      await api.put(`/api/Dashboard/UpdateQuestion/${faqToUpdate.id}`, {
         question: editQuestion,
         answer: editAnswer,
       });

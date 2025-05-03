@@ -59,13 +59,12 @@ import Setting from "./Dashboard/pages/setting/Setting";
 import AllRoadmaps from "./Dashboard/pages/roadmap/create/AllRoadmaps";
 import RoadmapDetails from "./Dashboard/pages/roadmap/create/Roadmapdetails";
 import CreateRoadmap from "./Dashboard/pages/roadmap/create/CreateRoadmap";
-import AllFields from "./Dashboard/pages/roadmap/create/fields/AllFields";
-import AddField from "./Dashboard/pages/roadmap/create/fields/AddField";
+import AllFields from "./Dashboard/pages/roadmap/fields/AllFields";
+import AddField from "./Dashboard/pages/roadmap/fields/AddField";
 import Regesteration from "./DevRoots/pages/login/Regesteration";
 import ProtectedRoute from "./ProtectedRoute";
 import Unauthorized from "./error/Unauthorized";
 import NotFound from "./error/NotFound";
-// @ts-ignore
 import NewCarouselSection from "./Dashboard/pages/Carousel/NewCarouselSection";
 import NewCarousel from "Dashboard/pages/Carousel/NewCarousel";
 import Home from "./DevRoots/Home/Home";
@@ -74,6 +73,9 @@ import AllCarousel from "./Dashboard/pages/Carousel/AllCarousel";
 import Settingg from "./DevRoots/pages/userProfile/Settingg";
 import SocialMedia from "./DevRoots/pages/userProfile/SocialMedia";
 import UpdateUser from "./DevRoots/pages/userProfile/UpdateUser";
+import Security from "Dashboard/pages/setting/Security";
+import AboutUs from "DevRoots/pages/aboutUs/AboutUs";
+import SocialMediaAdmin from "Dashboard/pages/setting/SocialMediaAdmin";
 
 function App() {
 
@@ -83,14 +85,15 @@ function App() {
       <Route path="/" element={<DevRootsOutlet />}>
         <Route index element={<Home />} />
         <Route path="allroadmaps" element={<RoadmapList/>} />
-        <Route path="regesteration" element={<Regesteration />} />
+        <Route path="registration" element={<Regesteration />} />
         <Route path="ForgotPassword" element={<ForgotPassword />} />
         <Route path="SetNewPassword" element={<SetNewPassword />} />
         <Route path="roadmap/:id" element={<Roadmap />} />
         <Route path="startHere" element={<StartHere />} />
+        <Route path="about-us" element={<AboutUs />} />
         <Route path="/Settingg" element={<Settingg />} />
         <Route path="/SocialMedia" element={<SocialMedia />} />
-        <Route path="/updateUser" element={<UpdateUser />}/>
+        <Route path="/userProfile" element={<UpdateUser />}/>
 
         <Route path="/unauthorized" element={<Unauthorized />} />
       </Route>
@@ -105,7 +108,7 @@ function App() {
           </ProtectedRoute>
         }
       >
-        <Route index element={<Dashboard newUsersCount={undefined} />} />
+        <Route index element={<Dashboard/>} />
         <Route path="piechart" element={<PieChart />} />
         <Route path="linechart" element={<LineChart />} />
         <Route path="barchart" element={<BarChart />} />
@@ -114,6 +117,8 @@ function App() {
         <Route path="profile/:id" element={<Profile />} />
         <Route path="faq" element={<FAQ />} />
         <Route path="setting" element={<Setting />} />
+        <Route path="Security" element={<Security />} />
+        <Route path="SocialMedia" element={<SocialMediaAdmin />}/>
         <Route path="allroadmaps" element={<AllRoadmaps />} />
         <Route path="create" element={<CreateRoadmap />} />
         <Route path="create/:id" element={<CreateRoadmap />} />

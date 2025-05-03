@@ -19,6 +19,7 @@ import { Link } from "react-router-dom"; // Import Link to navigate between page
 import axios from "axios";
 import { Box, Divider, Stack, Typography, useTheme } from "@mui/material";
 import IntroductionSection from "DevRoots/components/IntroductionSection";
+import {api} from "../../../services/axiosInstance"
 
 const RoadmapList = () => {
   const [roadmaps, setRoadmaps] = useState([]);
@@ -26,9 +27,9 @@ const RoadmapList = () => {
 
   useEffect(() => {
     // Fetch all roadmaps from the JSON server
-    axios
+    api
       .get(
-        "https://careerguidance.runasp.net/api/Dashboard/GetALlRoadmapsInDatabase"
+        "/api/Dashboard/GetALlRoadmapsInDatabase"
       )
       .then((response) => {
         // Assuming response.data is an array of roadmaps
@@ -71,27 +72,8 @@ const RoadmapList = () => {
   const theme = useTheme();
   return (
     <div>
-      <Box sx={{ width: "80%", m: "auto", marginTop: "calc(64px + 2rem)", }}>
-        {/* <Box sx={{ width: { xs: "100%", lg: "80%" }, mx: "auto", py: 4 }}>
-          <h2 style={{ textAlign: "center" }}>HI!</h2>
-          <Typography
-            variant="body1"
-            sx={{
-              textAlignLast: "left",
-              fontSize: "18px",
-              mt: 1,
-              textTransform: "lowercase",
-              color: theme.palette.text.primary,
-            }}
-          >
-            Our website offers comprehensive educational resources covering all
-            major tracks in computer science, including software development,
-            networking, artificial intelligence, and cybersecurity. Explore
-            tailored courses and materials to enhance your skills and advance
-            your career in the tech industry.
-          </Typography>
-        </Box> */}
-
+      <Box sx={{ width: "80%", m: "auto",}}>
+        
         <IntroductionSection title="Hi!" content={intro} />
 
         <Divider textAlign="center" sx={{ mb: 2 }}>

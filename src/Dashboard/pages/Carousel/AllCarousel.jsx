@@ -33,11 +33,10 @@ import {
 } from "@mui/material";
 
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
 import IconButton from "@mui/material/IconButton";
 import DeleteIcon from "@mui/icons-material/Delete";
 import EditIcon from "@mui/icons-material/Edit";
-import { useAuth } from "context/AuthContext";
+import { api } from "../../../services/axiosInstance";
 
 const AllCarousel = () => {
   const navigate = useNavigate();
@@ -45,12 +44,12 @@ const AllCarousel = () => {
   const [open, setOpen] = useState(false);
   const [selectedCarouselId, setSelectedCarouselId] = useState(null);
 
-  const { token } = useAuth();
+  // const api = useAxios();
 
   const fetchCarouselData = () => {
-    axios
+    api
       .get(
-        "https://careerguidance.runasp.net/api/Dashboard/GetAllDetailsCarouselSection"
+        "/api/Dashboard/GetAllDetailsCarouselSection"
       )
       .then((response) => {
         setCarousels(response.data);
@@ -85,15 +84,9 @@ const AllCarousel = () => {
 
   const handleDelete = () => {
     if (selectedCarouselId) {
-      axios
+      api
         .delete(
-          `https://careerguidance.runasp.net/api/Dashboard/DeleteDetailsCarouselSection/${selectedCarouselId}`,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-              "Content-Type": "application/json",
-            },
-          }
+          `/api/Dashboard/DeleteDetailsCarouselSection/${selectedCarouselId}`,
         )
         .then(() => {
           setCarousels((prevCarousels) =>

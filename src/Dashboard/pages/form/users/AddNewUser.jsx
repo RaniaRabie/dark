@@ -36,7 +36,8 @@ import LockIcon from "@mui/icons-material/Lock";
 import axios from "axios";
 import { Visibility, VisibilityOff } from "@mui/icons-material";
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "context/AuthContext";
+import { api } from "../../../../services/axiosInstance";
+
 
 const AddNewUser = () => {
   // Username Validation
@@ -45,6 +46,7 @@ const AddNewUser = () => {
   const [usernameTooltipOpen, setUsernameTooltipOpen] = useState(false); // State for username tooltip
   const [openSnackbar, setOpenSnackbar] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  // const api = useAxios();
 
   const validateUsername = (value) => {
     const usernamePattern = /^(?=.*[a-zA-Z]{3})(?=.*[0-9]{2})[a-zA-Z0-9]+$/;
@@ -137,7 +139,6 @@ const AddNewUser = () => {
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState("");
   const [snackbarSeverity, setSnackbarSeverity] = useState("success");
-    const {token} = useAuth()
   
 
   const handleSubmit = async (e) => {
@@ -191,22 +192,14 @@ const AddNewUser = () => {
     }
   
     try {
-      if (!token) throw new Error("No access token");
-      const response = await axios.post(
-        "https://careerguidance.runasp.net/api/Dashboard/AddUser",
+      const response = await api.post(
+        "/api/Dashboard/AddUser",
         {
           userName: username.trim(),
           email: addEmail.trim(),
           password: password.trim(),
           role: role,
         },
-
-        {
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-        }
       );
 
       setTimeout(() => {
@@ -639,7 +632,7 @@ const AddNewUser = () => {
               <MenuItem value="" disabled>
                 Select Role
               </MenuItem>
-              <MenuItem value="admin">Admin</MenuItem>
+              <MenuItem value="Admin">Admin</MenuItem>
               <MenuItem value="Instructor">Instructor</MenuItem>
             </Select>
           </Grid>

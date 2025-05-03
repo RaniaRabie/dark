@@ -32,6 +32,7 @@ import "../styles.css";
 import { Pagination, Navigation, Autoplay, EffectFade } from "swiper/modules";
 
 import { Box, Typography, useTheme } from "@mui/material";
+import {api} from "../../../services/axiosInstance"
 
 export default function Carousel() {
   const [slides, setSlides] = useState([]);
@@ -40,9 +41,9 @@ export default function Carousel() {
   const theme = useTheme();
 
   useEffect(() => {
-    axios
+    api
       .get(
-        "https://careerguidance.runasp.net/api/Dashboard/GetAllDetailsCarouselSection"
+        "/api/Dashboard/GetAllDetailsCarouselSection"
       )
       .then((response) => {
         const allSlides = response.data || [];

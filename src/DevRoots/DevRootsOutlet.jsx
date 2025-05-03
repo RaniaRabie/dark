@@ -12,7 +12,6 @@
 - Description : rendering main outlet for dashboard
 */
 import React, { useMemo, useState } from "react";
-import TopBar from "./components/TopBar";
 import { Outlet } from "react-router-dom";
 import { Box, CssBaseline, ThemeProvider } from "@mui/material";
 import { lightTheme, darkTheme } from "../theme";
@@ -24,6 +23,7 @@ const PageContainer = styled("div")({
   display: "flex",
   minHeight: "100vh",
   flexDirection: "column",
+  marginTop: "calc(64px)", 
 });
 
 // Styled component for the main content
@@ -59,12 +59,6 @@ export default function DevRootsOutlet() {
     <ThemeProvider theme={theme}>
       <CssBaseline />
       <PageContainer>
-        {/* <TopBar
-        // @ts-ignore
-        open={open}
-        handleDrawerOpen={handleDrawerOpen}
-        setMode={handleToggleMode} // Pass the new function to TopBar
-      /> */}
 
         <Header setMode={handleToggleMode}/>
 

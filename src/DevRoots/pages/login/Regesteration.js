@@ -134,7 +134,7 @@ const Regesteration = () => {
                 }}
                 onClick={() => setIsFlipped(false)}
               >
-                Sign in
+                Login
               </Box>
             </Typography>
           </Box>

@@ -1,21 +1,3 @@
-/*
-- File Name: SignUp.js
-- Author: Shrouk Ahmed
-- Date of Creation: 20/11/2024
-- Versions Information: 1.1.0
-- Dependencies:
-  {
-  REACT , 
-  MUI ,
-  axios,
-  react-router-dom,
-  react-oauth/google,
-  jwt-decode,
-  }
-- Contributors: shrouk ahmed, Nour Nkaled
-- Last Modified Date: 10/12/2024
-- Description : signup form
-*/
 import React, { useEffect, useState } from "react";
 import {
   Box,
@@ -39,208 +21,112 @@ import EnhancedEncryptionIcon from "@mui/icons-material/EnhancedEncryption";
 import { Visibility, VisibilityOff } from "@mui/icons-material";
 import { GoogleLogin } from "@react-oauth/google";
 import { jwtDecode } from "jwt-decode";
-import axios from "axios";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "context/AuthContext";
+import { api, scheduleTokenRefresh } from "services/axiosInstance";
+import { setAccessToken, setRefreshToken } from "../../../services/auth";
 
 const Signup = () => {
-  // username
-
-  const [isActive, setIsActive] = useState(false);
-  const [openSnackbar, setOpenSnackbar] = useState(false);
-  const [errorMessage, setErrorMessage] = useState("");
-
-  const [rememberMe, setRememberMe] = useState(false);
-
-  // Username Validation
   const [username, setUsername] = useState("");
-  const [isValidUsername, setIsValidUsername] = useState(true);
-  const [usernameTooltipOpen, setUsernameTooltipOpen] = useState(false); // State for username tooltip
-
-  const validateUsername = (value) => {
-    const usernamePattern = /^(?=.*[a-zA-Z]{3})(?=.*[0-9]{2})[a-zA-Z0-9]+$/;
-    return usernamePattern.test(value);
-  };
-
-  const handleUsernameChange = (e) => {
-    setUsername(e.target.value);
-    setIsValidUsername(validateUsername(e.target.value));
-  };
-
-  const handleUsernameFocus = () => {
-    setUsernameTooltipOpen(true);
-  };
-
-  const handleUsernameBlur = () => {
-    setUsernameTooltipOpen(false);
-  };
-
-  // Email Validation
   const [email, setEmail] = useState("");
-  const [emailError, setEmailError] = useState(false);
-  const [emailTooltipOpen, setEmailTooltipOpen] = useState(false); // State for email tooltip
-
-  const handleEmailChange = (e) => {
-    const newEmail = e.target.value; // Store the new email value
-    setEmail(newEmail);
-
-    // Validate email and set error state
-    const emailPattern = /^(?=.{16,})[a-zA-Z0-9._%+-]{6,}@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
-    const isValid = emailPattern.test(newEmail);
-    setEmailError(!isValid);
-    setEmailTooltipOpen(!isValid && newEmail.length > 0);
-  };
-
-  // Show tooltip on focus; hide if valid email
-  const handleEmailFocus = () => {
-    const emailPattern = /^(?=.{16,})[a-zA-Z0-9._%+-]{6,}@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
-    const isValid = emailPattern.test(email); // Check validity of the current email
-    setEmailTooltipOpen(!isValid); // Show tooltip if the email is invalid
-  };
-
-  // Hide tooltip when focus is lost
-  const handleEmailBlur = () => {
-    setEmailTooltipOpen(false); // Hide tooltip when focus is lost
-  };
-
-  /////////////////////////////////////////////////
-
-  //Password Validaion
-  const [signUpPassword, setSignUpPassword] = useState(""); // Password for sign-up
+  const [signUpPassword, setSignUpPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const [tooltipOpen, setTooltipOpen] = useState(false);
-  const [ConfirmtooltipOpen, setConfirmTooltipOpen] = useState(false);
-  const { login } = useAuth(); // Get login function from AuthContext
+  const [openSnackbar, setOpenSnackbar] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
+  const [open, setOpen] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+  const [focused, setFocused] = useState({
+    username: false,
+    email: false,
+    password: false,
+    confirmPassword: false,
+  });
+  const [submitted, setSubmitted] = useState(false);
 
+  const { login } = useAuth();
+  const navigate = useNavigate();
+  const theme = useTheme();
+
+  // Validation logic
+  const isValidUsername = /^[a-zA-Z]{3,}[0-9]{2,}$/.test(username);
+  const emailError = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) && email.length > 0;
+  
+
+  const usernameCriteria = [
+    { label: 'Must start with at least 3 letters followed by at least 2 numbers', valid: isValidUsername },
+  ];
+
+
+  const emailCriteria = [
+    { label: 'Must be a valid email address', valid: emailError },
+  ];
+
+  // Password Validation
   const validations = {
     minLength: signUpPassword.length >= 8,
     hasUpperCase: /[A-Z]/.test(signUpPassword),
     hasLowerCase: /[a-z]/.test(signUpPassword),
     hasNumber: /[0-9]/.test(signUpPassword),
     hasSpecialChar: /[!@#$%^&*]/.test(signUpPassword),
-    match:
-      signUpPassword && confirmPassword
-        ? confirmPassword === signUpPassword
-        : false,
+    match: signUpPassword && confirmPassword ? confirmPassword === signUpPassword : false,
   };
+
   const validationCriteria = [
     { label: "At least 8 characters", valid: validations.minLength },
     { label: "At least one uppercase letter", valid: validations.hasUpperCase },
     { label: "At least one lowercase letter", valid: validations.hasLowerCase },
     { label: "At least one number", valid: validations.hasNumber },
-    {
-      label: "At least one special character",
-      valid: validations.hasSpecialChar,
-    },
+    { label: "At least one special character", valid: validations.hasSpecialChar },
   ];
+
   const ConfirmValidationCriteria = [
     { label: "Passwords match", valid: validations.match },
   ];
+
+  const allCriteriaMet = validationCriteria.every((item) => item.valid);
+
   const handleToggleShowPassword = () => setShowPassword(!showPassword);
 
-  /////////////////////////////////////////////////
-  //form handling
+  const handleUsernameChange = (e) => setUsername(e.target.value);
+  const handleEmailChange = (e) => setEmail(e.target.value);
 
+  // Form Submission
   const handleSignUpSubmit = (e) => {
-    e.preventDefault(); // Prevent default form submission
-    // Check if any of the fields are empty
-    if (!validateUsername(username)) {
-      setIsValidUsername(false);
-      setUsernameTooltipOpen(true);
-    } else {
-      setIsValidUsername(true);
-      setUsernameTooltipOpen(false);
-    }
-    // Email validation
-    const emailPattern = /^(?=.{16,})[a-zA-Z0-9._%+-]{6,}@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
-    const isValidEmail = emailPattern.test(email);
-    setEmailError(!isValidEmail);
-    setEmailTooltipOpen(!isValidEmail);
+    e.preventDefault();
+    setSubmitted(true);
 
-    const isPasswordValid = validationCriteria.every((item) => item.valid);
-    const isConfirmPasswordValid =
-      confirmPassword !== "" && confirmPassword === signUpPassword;
+    const isUsernameValid = isValidUsername;
+    const isEmailValid = emailError;
+    const isPasswordValid = allCriteriaMet;
+    const isConfirmPasswordValid = confirmPassword === signUpPassword;
 
-    if (!isPasswordValid) {
-      setTooltipOpen(true); // إظهار التولتيب الخاص بـ Password
-      setConfirmTooltipOpen(false); // إخفاء التولتيب الخاص بـ Confirm Password
-      return;
-    }
-
-    // إذا كانت كلمة المرور صحيحة، ولكن Confirm Password غير مطابق
-    if (confirmPassword !== signUpPassword) {
-      setTooltipOpen(false); // إخفاء التولتيب الخاص بـ Password
-      setConfirmTooltipOpen(true); // إظهار التولتيب الخاص بـ Confirm Password
-      return;
-    }
-
-    // إذا كانت جميع الشروط صحيحة، قم بإرسال البيانات
-    setTooltipOpen(false);
-    setConfirmTooltipOpen(false);
-
-    if (!username || !email || !signUpPassword || !confirmPassword) {
-      return;
-    }
-
-    // Proceed with form submission if all fields are filled
-    if (
-      isValidUsername &&
-      !emailError &&
-      validationCriteria &&
-      ConfirmValidationCriteria
-    ) {
-      // Submit form
-
+    if (isUsernameValid && isEmailValid && isPasswordValid && isConfirmPasswordValid) {
       onSubmit({
         username: username.trim(),
         password: signUpPassword.trim(),
         email: email.trim(),
         confirmPassword: confirmPassword.trim(),
       });
-    } else {
     }
   };
-  /////////////////////////////////////////////////
-  //Token , RefreshToken
-  axios.interceptors.request.use((request) => {
-    console.log("Starting Request", JSON.stringify(request.data, null, 2));
-    return request;
-  });
-  const navigate = useNavigate();
 
   const onSubmit = async (data) => {
-    const SignUpData = {
-      ...data,
-    };
-
     try {
-      const response = await axios.post(
-        "https://careerguidance.runasp.net/Auth/SignUp",
-        SignUpData,
-        { headers: { "Content-Type": "application/json" } }
-      );
+      const response = await api.post("/Auth/SignUp", data);
+      const { role, token: accessToken, refreshToken, expiresIn, ...otherData } = response.data;
 
-      // Handle response data (assuming token is either 'token' or 'accessToken')
-      const { role, token, accessToken, refreshToken, ...otherData } = response.data;
-      const effectiveToken = token || accessToken; // Use token or accessToken
-
-      // Store user data and tokens using AuthContext's login function
-      login({ role, ...otherData }, effectiveToken, refreshToken);
+      setAccessToken(accessToken);
+      setRefreshToken(refreshToken);
+      login({ role, ...otherData });
+      scheduleTokenRefresh(expiresIn);
 
       console.log("Sign-up successful:", response.data);
-      handleClick(); // Show success Snackbar
-      navigate("/"); // Redirect to home page
-      // Consider removing window.location.reload() if not necessary
-      window.location.reload();
+      setOpen(true);
+      navigate("/");
     } catch (error) {
       console.log("Error during API call:", error);
-
-      if (
-        (error.response && error.response.status === 400) ||
-        (error.response && error.response.status === 409) ||
-        (error.response && error.response.status === 401)
-      ) {
+      if (error.response && [400, 409, 401].includes(error.response.status)) {
         const errorMessage =
           error.response.data.errors?.[1] ||
           error.response.data.errors?.[0] ||
@@ -253,59 +139,30 @@ const Signup = () => {
     }
   };
 
-  // Function to handle closing the Snackbar
+  // Handlers
   const handleCloseSnackbar = () => {
     setOpenSnackbar(false);
-    setErrorMessage(""); // Clear the error message after closing
+    setErrorMessage("");
   };
-
-
-
-  ///////////////////////////////////
-  const handleClick = () => {
-    setOpen(true);
-  };
-
-  const [open, setOpen] = React.useState(false);
-  const googleNavigate = useNavigate();
 
   const handleClose = (event, reason) => {
-    if (reason === "clickaway") {
-      return;
-    }
-
+    if (reason === "clickaway") return;
     setOpen(false);
   };
 
-  const handleRegisterClick = () => {
-    setIsActive(true);
-  };
-
-  const handleLoginClick = () => {
-    setIsActive(false);
-  };
-
   const handleSuccess = async (response) => {
-    console.log("Login Success:", response);
-    // Decode the credential token
     const credentialResponseDecoded = jwtDecode(response.credential);
-    console.log(credentialResponseDecoded);
-
-    // Send the token to your API
     try {
-      const apiResponse = await axios.post(
-        "https://careerguidance.runasp.net/Auth/Google-Signin",
-        {
-          token: response.credential,
-        }
-      );
-      console.log("API Response:", apiResponse.data);
-      // Handle the API response as needed (e.g., store tokens, navigate, etc.)
-      googleNavigate("/");
-      const { role, accessToken, refreshToken, ...otherData } =
-        apiResponse.data;
-      localStorage.setItem("user", JSON.stringify({ role, ...otherData }));
-      window.location.reload();
+      const apiResponse = await api.post("/Auth/Google-Signin", { token: response.credential });
+      const { role, token: accessToken, refreshToken, expiresIn, ...otherData } = apiResponse.data;
+
+      setAccessToken(accessToken);
+      setRefreshToken(refreshToken);
+      login({ role, ...otherData });
+      scheduleTokenRefresh(expiresIn);
+
+      navigate("/");
+      console.log("Google Sign-In successful:", apiResponse.data);
     } catch (error) {
       console.error("API Call Failed:", error);
     }
@@ -314,19 +171,14 @@ const Signup = () => {
   const handleFailure = (error) => {
     console.error("Login Failed:", error);
   };
-  const [isMobile, setIsMobile] = useState(false);
 
+  // Mobile Detection
   useEffect(() => {
-    const handleResize = () => {
-      setIsMobile(window.innerWidth <= 768);
-    };
-
+    const handleResize = () => setIsMobile(window.innerWidth <= 768);
     window.addEventListener("resize", handleResize);
-    handleResize(); // Initial check
-
+    handleResize();
     return () => window.removeEventListener("resize", handleResize);
   }, []);
-  const theme = useTheme();
 
   return (
     <Box
@@ -339,13 +191,7 @@ const Signup = () => {
         px: 4,
       }}
     >
-      <Box
-        style={{
-          display: "flex",
-          alignItems: "center",
-          flexDirection: "column",
-        }}
-      >
+      <Box style={{ display: "flex", alignItems: "center", flexDirection: "column" }}>
         <Typography
           fontWeight="bold"
           mb={2}
@@ -359,209 +205,185 @@ const Signup = () => {
           Create Account
         </Typography>
 
-        {/* Username field */}
+        {/* Username Field */}
         <Box sx={{ display: "flex", alignItems: "flex-start" }}>
-          <TextField
-            placeholder="Username"
-            type="text"
-            value={username}
-            onChange={handleUsernameChange}
-            onFocus={handleUsernameFocus} // Show tooltip on focus
-            error={!isValidUsername} // Show error when username is invalid
-            autoComplete="off"
-            onBlur={handleUsernameBlur} // Hide tooltip on blur
-            sx={{
-              "& input:-webkit-autofill": {
-                WebkitBoxShadow: "0 0 0 10px transparent inset", // Make the autofill background transparent
-                backgroundColor: "transparent",
-                WebkitTextFillColor: "#293241", // Maintain your desired text color
-                transition: "background-color 5000s ease-in-out 0s", // A trick to override autofill background
-              },
-              "& input:-webkit-autofill:focus, & input:-webkit-autofill:hover":
-                {
-                  backgroundColor: "transparent",
-                  WebkitBoxShadow: "0 0 0 10px transparent inset", // Keep it transparent on focus/hover
-                  transition: "background-color 5000s ease-in-out 0s", // Maintain the background color override
-                },
-              "& .MuiOutlinedInput-root": {
-                borderRadius: "25px",
-                width: "320px",
-                height: "37px",
-                margin: "0", // Remove default margin from TextField
-                border: "1px solid gray",
-                "& fieldset": {
-                  border: "none", // Remove the default border
-                },
-              },
-              "& .MuiInputBase-root": {
-                "&.Mui-focused": {
-                  borderColor: "gray", // Remove focus color
-                },
-              },
-            }}
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">
-                  <div
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      border: "2px solid #ee6c4d",
-                      borderLeft: "none",
-                      borderTop: "none",
-                      borderBottom: "none",
-                      borderRadius: "10px 0 0 10px",
-                    }}
-                  >
-                    <PersonIcon
-                      style={{
-                        color: "#ee6c4d",
-                        fontSize: 30,
-                        marginRight: 5,
-                      }}
-                    />
-                  </div>
-                </InputAdornment>
-              ),
-            }}
-          />
-          <Tooltip
-            title={
-              !isValidUsername
-                ? "Username must start with at least 3 letters, 2 numbers ."
-                : ""
-            }
-            placement={isMobile ? "bottom" : "right-start"} // Conditionally set the placement
-            open={usernameTooltipOpen} // Control tooltip visibility for username
-            arrow
-            PopperProps={{
-              sx: {
-                "& .MuiTooltip-tooltip": {
-                  backgroundColor: "#f5f5f5", // Set your desired background color here
-                  color: "#ee6c4d", // Optional: Set text color for better visibility
-                  textTransform: "bold",
-                  fontSize: 13,
-                },
-              },
-              modifiers: [
-                {
-                  name: "offset",
-                  options: {
-                    offset: isMobile ? [0, 8] : [8, -5], // Adjust the second value for top margin (increase as needed)
-                  },
-                },
-              ],
-            }}
-            children={undefined}
-          />
-        </Box>
-        {/* Email field */}
-        <Box sx={{ display: "flex", alignItems: "flex-start" }}>
-          <TextField
-            placeholder="Email"
-            type="email"
-            error={emailError} // Control error state
-            value={email}
-            autoComplete="off"
-            onChange={handleEmailChange}
-            onFocus={handleEmailFocus} // Show tooltip on focus
-            onBlur={handleEmailBlur} // Hide tooltip on blur
-            sx={{
-              "& input:-webkit-autofill": {
-                WebkitBoxShadow: "0 0 0 10px transparent inset", // Make the autofill background transparent
-                backgroundColor: "transparent",
-                WebkitTextFillColor: "#293241", // Maintain your desired text color
-                transition: "background-color 5000s ease-in-out 0s", // A trick to override autofill background
-              },
-              "& input:-webkit-autofill:focus, & input:-webkit-autofill:hover":
-                {
-                  backgroundColor: "transparent",
-                  WebkitBoxShadow: "0 0 0 10px transparent inset", // Keep it transparent on focus/hover
-                  transition: "background-color 5000s ease-in-out 0s", // Maintain the background color override
-                },
-              "& .MuiOutlinedInput-root": {
-                borderRadius: "25px",
-                width: "320px",
-                height: "37px",
-                margin: "10px 0",
-                border: "1px solid gray",
-                "& fieldset": {
-                  border: "none", // Remove the default border
-                },
-              },
-              "& .MuiInputBase-root": {
-                "&.Mui-focused": {
-                  borderColor: "gray", // Remove focus color
-                },
-              },
-            }}
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">
-                  <div
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      border: "2px solid #ee6c4d",
-                      borderLeft: "none",
-                      borderTop: "none",
-                      borderBottom: "none",
-                      borderRadius: "10px 0 0 10px",
-                    }}
-                  >
-                    <EmailIcon
-                      style={{
-                        color: "#ee6c4d",
-                        fontSize: 30,
-                        marginRight: 5,
-                      }}
-                    />
-                  </div>
-                </InputAdornment>
-              ),
-            }}
-          />
-
-          <Tooltip
-            title="Please enter a valid email (e.g., example@domain.com)"
-            placement={isMobile ? "bottom" : "right-start"} // Conditionally set the placement
-            open={emailTooltipOpen} // Control tooltip visibility for email
-            arrow
-            PopperProps={{
-              sx: {
-                "& .MuiTooltip-tooltip": {
-                  backgroundColor: "#f5f5f5", // Set your desired background color here
-                  color: "#ee6c4d", // Optional: Set text color for better visibility
-                  textTransform: "bold",
-                  fontSize: 13,
-                },
-              },
-              modifiers: [
-                {
-                  name: "offset",
-                  options: {
-                    offset: isMobile ? [0, 20] : [19, -5], // Adjust the second value for top margin (increase as needed)
-                  },
-                },
-              ],
-            }}
-            children={undefined}
-          />
-        </Box>
-        {/* sign up Password field with tooltip */}
         <Tooltip
           title={
             <Box sx={{ width: 230 }}>
-              <Typography
-                variant="h6"
-                sx={{
-                  fontSize: 13,
-                  fontWeight: "bold",
-                  color: "#293241",
-                }}
-              >
+              <Typography variant="h6" sx={{ fontSize: 13, fontWeight: 'bold', color: '#293241' }}>
+                Username Requirements:
+              </Typography>
+              <List>
+                {usernameCriteria.map((item, index) => (
+                  <ListItem key={index} sx={{ padding: 0, margin: 0 }}>
+                    <Typography
+                      color={item.valid ? 'green' : 'red'}
+                      sx={{ display: 'flex', alignItems: 'center', fontSize: '10px', margin: 0, padding: 0 }}
+                    >
+                      {item.valid ? '✔' : '✖'} {item.label}
+                    </Typography>
+                  </ListItem>
+                ))}
+              </List>
+            </Box>
+          }
+          open={focused.username || (submitted && !isValidUsername)}
+          placement={isMobile ? 'bottom' : 'right-start'}
+          arrow
+          PopperProps={{
+            sx: { '& .MuiTooltip-tooltip': { backgroundColor: '#f5f5f5', color: '#293241' } },
+            modifiers: [{ name: 'offset', options: { offset: isMobile ? [0, 8] : [8, -5] } }],
+          }}
+        >
+            <TextField
+              placeholder="Username"
+              type="text"
+              value={username}
+              onChange={handleUsernameChange}
+              error={!isValidUsername}
+              autoComplete="off"
+              onFocus={() => setFocused((prev) => ({ ...prev, username: true }))}
+              onBlur={() => setFocused((prev) => ({ ...prev, username: false }))}
+              sx={{
+                "& input:-webkit-autofill": {
+                  WebkitBoxShadow: "0 0 0 10px transparent inset",
+                  backgroundColor: "transparent",
+                  WebkitTextFillColor: "#293241",
+                  transition: "background-color 5000s ease-in-out 0s",
+                },
+                "& input:-webkit-autofill:focus, & input:-webkit-autofill:hover": {
+                  backgroundColor: "transparent",
+                  WebkitBoxShadow: "0 0 0 10px transparent inset",
+                  transition: "background-color 5000s ease-in-out 0s",
+                },
+                "& .MuiOutlinedInput-root": {
+                  borderRadius: "25px",
+                  width: "320px",
+                  height: "37px",
+                  margin: "0",
+                  border: "1px solid gray",
+                  "& fieldset": { border: "none" },
+                },
+                "& .MuiInputBase-root": {
+                  "&.Mui-focused": { borderColor: "gray" },
+                },
+              }}
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <div
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        border: "2px solid #ee6c4d",
+                        borderLeft: "none",
+                        borderTop: "none",
+                        borderBottom: "none",
+                        borderRadius: "10px 0 0 10px",
+                      }}
+                    >
+                      <PersonIcon style={{ color: "#ee6c4d", fontSize: 30, marginRight: 5 }} />
+                    </div>
+                  </InputAdornment>
+                ),
+              }}
+            />
+          </Tooltip>
+        </Box>
+
+        {/* Email Field */}
+        <Box sx={{ display: "flex", alignItems: "flex-start" }}>
+        <Tooltip
+          title={
+            <Box sx={{ width: 230 }}>
+              <Typography variant="h6" sx={{ fontSize: 13, fontWeight: 'bold', color: '#293241' }}>
+                Email Requirements:
+              </Typography>
+              <List>
+                {emailCriteria.map((item, index) => (
+                  <ListItem key={index} sx={{ padding: 0, margin: 0 }}>
+                    <Typography
+                      color={item.valid ? 'green' : 'red'}
+                      sx={{ display: 'flex', alignItems: 'center', fontSize: '10px', margin: 0, padding: 0 }}
+                    >
+                      {item.valid ? '✔' : '✖'} {item.label}
+                    </Typography>
+                  </ListItem>
+                ))}
+              </List>
+            </Box>
+          }
+          open={focused.email || (submitted && !emailError)}
+          placement={isMobile ? 'bottom' : 'right-start'}
+          arrow
+          PopperProps={{
+            sx: { '& .MuiTooltip-tooltip': { backgroundColor: '#f5f5f5', color: '#293241' } },
+            modifiers: [{ name: 'offset', options: { offset: isMobile ? [0, 8] : [8, -5] } }],
+          }}
+        >
+            <TextField
+              placeholder="Email"
+              type="email"
+              error={!emailError}
+              value={email}
+              autoComplete="off"
+              onChange={handleEmailChange}
+              onFocus={() => setFocused((prev) => ({ ...prev, email: true }))}
+              onBlur={() => setFocused((prev) => ({ ...prev, email: false }))}
+              sx={{
+                "& input:-webkit-autofill": {
+                  WebkitBoxShadow: "0 0 0 10px transparent inset",
+                  backgroundColor: "transparent",
+                  WebkitTextFillColor: "#293241",
+                  transition: "background-color 5000s ease-in-out 0s",
+                },
+                "& input:-webkit-autofill:focus, & input:-webkit-autofill:hover": {
+                  backgroundColor: "transparent",
+                  WebkitBoxShadow: "0 0 0 10px transparent inset",
+                  transition: "background-color 5000s ease-in-out 0s",
+                },
+                "& .MuiOutlinedInput-root": {
+                  borderRadius: "25px",
+                  width: "320px",
+                  height: "37px",
+                  margin: "10px 0",
+                  border: "1px solid gray",
+                  "& fieldset": { border: "none" },
+                },
+                "& .MuiInputBase-root": {
+                  "&.Mui-focused": { borderColor: "gray" },
+                },
+              }}
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <div
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        border: "2px solid #ee6c4d",
+                        borderLeft: "none",
+                        borderTop: "none",
+                        borderBottom: "none",
+                        borderRadius: "10px 0 0 10px",
+                      }}
+                    >
+                      <EmailIcon style={{ color: "#ee6c4d", fontSize: 30, marginRight: 5 }} />
+                    </div>
+                  </InputAdornment>
+                ),
+              }}
+            />
+          </Tooltip>
+        </Box>
+
+        {/* Password Field */}
+        <Tooltip
+          title={
+            <Box sx={{ width: 230 }}>
+              <Typography variant="h6" sx={{ fontSize: 13, fontWeight: "bold", color: "#293241" }}>
                 Password Requirements:
               </Typography>
               <List>
@@ -569,13 +391,7 @@ const Signup = () => {
                   <ListItem key={index} sx={{ padding: 0, margin: 0 }}>
                     <Typography
                       color={item.valid ? "green" : "red"}
-                      sx={{
-                        display: "flex",
-                        alignItems: "center",
-                        fontSize: "10px",
-                        margin: 0,
-                        padding: 0,
-                      }}
+                      sx={{ display: "flex", alignItems: "center", fontSize: "10px", margin: 0, padding: 0 }}
                     >
                       {item.valid ? "✔" : "✖"} {item.label}
                     </Typography>
@@ -584,47 +400,36 @@ const Signup = () => {
               </List>
             </Box>
           }
-          open={tooltipOpen}
-          placement={isMobile ? "bottom" : "right-start"} // Conditionally set the placement
+          open={focused.password || (submitted && !allCriteriaMet)}
+          placement={isMobile ? "bottom" : "right-start"}
+          
           arrow
           PopperProps={{
             sx: {
-              "& .MuiTooltip-tooltip": {
-                backgroundColor: "#f5f5f5", // Set your desired background color here
-                color: "#293241", // Optional: Set text color for better visibility
-              },
+              "& .MuiTooltip-tooltip": { backgroundColor: "#f5f5f5", color: "#293241" },
             },
-            modifiers: [
-              {
-                name: "offset",
-                options: {
-                  offset: isMobile ? [0, -12] : [10, -5], // Adjust the second value for top margin (increase as needed)
-                },
-              },
-            ],
+            modifiers: [{ name: "offset", options: { offset: isMobile ? [0, -12] : [10, -5] } }],
           }}
         >
           <TextField
             placeholder="Password"
             type="password"
-            // type={showPassword ? "text" : "password"}
             value={signUpPassword}
             onChange={(e) => setSignUpPassword(e.target.value)}
-            onFocus={() => setTooltipOpen(true)} // Show tooltip on focus
-            onBlur={() => setTooltipOpen(false)} // Hide tooltip on blur
+            onFocus={() => setFocused((prev) => ({ ...prev, password: true }))}
+            onBlur={() => setFocused((prev) => ({ ...prev, password: false }))}
             sx={{
               "& input:-webkit-autofill": {
-                WebkitBoxShadow: "0 0 0 10px transparent inset", // Make the autofill background transparent
+                WebkitBoxShadow: "0 0 0 10px transparent inset",
                 backgroundColor: "transparent",
-                WebkitTextFillColor: "#293241", // Maintain your desired text color
-                transition: "background-color 5000s ease-in-out 0s", // A trick to override autofill background
+                WebkitTextFillColor: "#293241",
+                transition: "background-color 5000s ease-in-out 0s",
               },
-              "& input:-webkit-autofill:focus, & input:-webkit-autofill:hover":
-                {
-                  backgroundColor: "transparent",
-                  WebkitBoxShadow: "0 0 0 10px transparent inset", // Keep it transparent on focus/hover
-                  transition: "background-color 5000s ease-in-out 0s", // Maintain the background color override
-                },
+              "& input:-webkit-autofill:focus, & input:-webkit-autofill:hover": {
+                backgroundColor: "transparent",
+                WebkitBoxShadow: "0 0 0 10px transparent inset",
+                transition: "background-color 5000s ease-in-out 0s",
+              },
               "& .MuiOutlinedInput-root": {
                 borderRadius: "25px",
                 width: "320px",
@@ -651,45 +456,25 @@ const Signup = () => {
                       borderRadius: "10px 0 0 10px",
                     }}
                   >
-                    <LockIcon
-                      style={{
-                        color: "#ee6c4d",
-                        fontSize: 30,
-                        marginRight: 5,
-                      }}
-                    />
+                    <LockIcon style={{ color: "#ee6c4d", fontSize: 30, marginRight: 5 }} />
                   </div>
                 </InputAdornment>
               ),
             }}
           />
         </Tooltip>
-        {/* Confirm Password field with tooltip */}
+
+        {/* Confirm Password Field */}
         <Tooltip
           title={
             <Box sx={{ width: 230 }}>
-              <Typography
-                variant="h6"
-                sx={{
-                  fontSize: 13,
-                  fontWeight: "bold",
-                  color: "#293241",
-                }}
-              >
-                Password Requirements:
-              </Typography>
+              
               <List>
                 {ConfirmValidationCriteria.map((item, index) => (
                   <ListItem key={index} sx={{ padding: 0, margin: 0 }}>
                     <Typography
                       color={item.valid ? "green" : "red"}
-                      sx={{
-                        display: "flex",
-                        alignItems: "center",
-                        fontSize: "10px",
-                        margin: 0,
-                        padding: 0,
-                      }}
+                      sx={{ display: "flex", alignItems: "center", fontSize: "10px", margin: 0, padding: 0 }}
                     >
                       {item.valid ? "✔" : "✖"} {item.label}
                     </Typography>
@@ -698,24 +483,14 @@ const Signup = () => {
               </List>
             </Box>
           }
-          open={ConfirmtooltipOpen}
+          open={focused.confirmPassword || (submitted && !validations.match)}
+          placement={isMobile ? "bottom" : "right-start"}
           arrow
-          placement={isMobile ? "bottom" : "right-start"} // Conditionally set the placement
           PopperProps={{
             sx: {
-              "& .MuiTooltip-tooltip": {
-                backgroundColor: "#f5f5f5", // Set your desired background color here
-                color: "#293241", // Optional: Set text color for better visibility
-              },
+              "& .MuiTooltip-tooltip": { backgroundColor: "#f5f5f5", color: "#293241" },
             },
-            modifiers: [
-              {
-                name: "offset",
-                options: {
-                  offset: isMobile ? [0, -20] : [9, -5], // Adjust the second value for top margin (increase as needed)
-                },
-              },
-            ],
+            modifiers: [{ name: "offset", options: { offset: isMobile ? [0, -20] : [9, -5] } }],
           }}
         >
           <TextField
@@ -723,8 +498,8 @@ const Signup = () => {
             type={showPassword ? "text" : "password"}
             value={confirmPassword}
             onChange={(e) => setConfirmPassword(e.target.value)}
-            onFocus={() => setConfirmTooltipOpen(true)} // Show tooltip on focus
-            onBlur={() => setConfirmTooltipOpen(false)} // Hide tooltip on blur
+            onFocus={() => setFocused((prev) => ({ ...prev, confirmPassword: true }))}
+            onBlur={() => setFocused((prev) => ({ ...prev, confirmPassword: false }))}
             sx={{
               "& .MuiOutlinedInput-root": {
                 borderRadius: "25px",
@@ -753,23 +528,13 @@ const Signup = () => {
                       borderRadius: "10px 0 0 10px",
                     }}
                   >
-                    <EnhancedEncryptionIcon
-                      style={{
-                        color: "#ee6c4d",
-                        fontSize: 30,
-                        marginRight: 5,
-                      }}
-                    />
+                    <EnhancedEncryptionIcon style={{ color: "#ee6c4d", fontSize: 30, marginRight: 5 }} />
                   </div>
                 </InputAdornment>
               ),
               endAdornment: (
                 <InputAdornment position="end">
-                  <IconButton
-                    onClick={handleToggleShowPassword}
-                    edge="end"
-                    style={{ color: "gray" }}
-                  >
+                  <IconButton onClick={handleToggleShowPassword} edge="end" style={{ color: "gray" }}>
                     {showPassword ? <VisibilityOff /> : <Visibility />}
                   </IconButton>
                 </InputAdornment>
@@ -777,6 +542,7 @@ const Signup = () => {
             }}
           />
         </Tooltip>
+
         <Button
           type="submit"
           variant="contained"
@@ -785,59 +551,33 @@ const Signup = () => {
             textTransform: "capitalize",
             backgroundColor: "#ee6c4d",
             width: "150px",
-            letterSpacing: " 0.5px",
+            letterSpacing: "0.5px",
             margin: "10px 0px",
-            cursor: " pointer",
+            cursor: "pointer",
             border: "1px solid transparent",
             borderRadius: "8px",
           }}
         >
           Sign Up
         </Button>
-        {/* Continue with Google button */}
-        <Stack
-          display="flex"
-          alignItems="center"
-          justifyContent="center"
-          direction="row"
-          sx={{ mb: 1 }}
-        >
-          <div
-            style={{
-              border: "1px solid rgba(34, 60, 84, 0.397)",
-              width: 150,
-              margin: 10,
-            }}
-          ></div>
-          <span
-            style={{ color: theme.palette.text.primary, fontWeight: "bold" }}
-          >
-            {" "}
-            OR{" "}
-          </span>{" "}
-          <div
-            style={{
-              border: "1px solid rgba(4, 60, 84, 0.397)",
-              width: 150,
-              margin: 10,
-            }}
-          ></div>
+
+        {/* Google Login */}
+        <Stack display="flex" alignItems="center" justifyContent="center" direction="row" sx={{ mb: 1 }}>
+          <div style={{ border: "1px solid rgba(34, 60, 84, 0.397)", width: 150, margin: 10 }}></div>
+          <span style={{ color: theme.palette.text.primary, fontWeight: "bold" }}> OR </span>
+          <div style={{ border: "1px solid rgba(4, 60, 84, 0.397)", width: 150, margin: 10 }}></div>
         </Stack>
         <GoogleLogin onSuccess={handleSuccess} onError={handleFailure} />
       </Box>
-      {/* end of sign up form  */}
 
+      {/* Snackbars */}
       <Snackbar
         open={openSnackbar}
         autoHideDuration={6000}
         onClose={handleCloseSnackbar}
         anchorOrigin={{ vertical: "top", horizontal: "center" }}
       >
-        <Alert
-          onClose={handleCloseSnackbar}
-          severity="error"
-          sx={{ width: "100%" }}
-        >
+        <Alert onClose={handleCloseSnackbar} severity="error" sx={{ width: "100%" }}>
           {errorMessage}
         </Alert>
       </Snackbar>
@@ -847,16 +587,12 @@ const Signup = () => {
         autoHideDuration={3000}
         onClose={handleClose}
       >
-        <Alert
-          onClose={handleClose}
-          severity="info"
-          variant="filled"
-          sx={{ width: "100%" }}
-        >
+        <Alert onClose={handleClose} severity="info" variant="filled" sx={{ width: "100%" }}>
           Account created successfully
         </Alert>
       </Snackbar>
     </Box>
   );
 };
+
 export default Signup;

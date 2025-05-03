@@ -9,17 +9,16 @@
 - Description : global styling
 */
 
-  .container {
+  /* .container {
     display: flex;
-    /* position: fixed; */
-  }
+    
+  } */
   
-  .main-container {
-    transition: margin-left 0.5s; /* Smooth transition for margin */
-    flex-grow: 1; /* Allow the main content to fill the remaining space */
-  
+  /* .main-container {
+    transition: margin-left 0.5s;
+    flex-grow: 1; 
     display: flex;
-  }
+  } */
   main {
     padding: 10px;
   }

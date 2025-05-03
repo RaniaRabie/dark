@@ -22,7 +22,7 @@ import InstagramIcon from "@mui/icons-material/Instagram";
 import LinkedInIcon from "@mui/icons-material/LinkedIn";
 import GitHubIcon from "@mui/icons-material/GitHub";
 import axios from "axios";
-import { useAuth } from "context/AuthContext";
+import {api} from "../../../../services/axiosInstance"
 
 export default function UserProfile() {
   const { id } = useParams();
@@ -37,8 +37,6 @@ export default function UserProfile() {
     severity: "success",
   });
   const theme = useTheme();
-  const {token} = useAuth()
-
 
   // Helper to format ISO date to locale string
   const formatDate = (dateString) => {
@@ -52,19 +50,18 @@ export default function UserProfile() {
     });
   };
 
-
   useEffect(() => {
     const fetchUser = async () => {
       setLoading(true);
       setError(null);
 
       try {
-        if (!token) throw new Error("No access token found");
+        // if (!token) throw new Error("No access token found");
 
         // Use apiClient for the API call, which handles token refresh
-        const response = await axios.get(
-          `https://careerguidance.runasp.net/api/Dashboard/GetuserById/${id}`,
-          { headers: { Authorization: `Bearer ${token}` } }
+        const response = await api.get(
+
+          `/api/Dashboard/GetUserById/${id}`,
         );
 
         const u = response.data;
@@ -79,18 +76,20 @@ export default function UserProfile() {
           phoneNumber: u.phoneNumber || "null",
           dateOfBirth: formatDate(u.dateOfBirth),
           facebook: u.facebook || "null",
-          github: u.github || "null",
+          gitHub: u.gitHub || "null",
           instagram: u.instagram || "null",
-          linkedin: u.linkedin || "null",
-          frontendRoadmap: u.frontendRoadmap || "null",
-          backendRoadmap: u.backendRoadmap || "null",
+          linkedIn: u.linkedIn || "null",
+          roadmaps_: u.roadmaps_, // array from response
         });
+        console.log(u);
       } catch (err) {
         if (err.response?.status === 404) {
           setError("User not found. Redirecting...");
           setTimeout(() => navigate("/dashboard/allusers"), 3000);
         } else {
-          setError(err.message || "Failed to fetch user data. Try again later.");
+          setError(
+            err.message || "Failed to fetch user data. Try again later."
+          );
         }
       } finally {
         setLoading(false);
@@ -98,16 +97,15 @@ export default function UserProfile() {
     };
 
     fetchUser();
-  }, [id, navigate, token]); // Add token as a dependency
+  }, [id, navigate]); // Add token as a dependency
 
   const handleDeleteUser = async () => {
     try {
-      if (!token) throw new Error("No authentication token found");
+      // if (!token) throw new Error("No authentication token found");
 
       // Use apiClient for the delete request
-      await axios.delete(
-        `https://careerguidance.runasp.net/api/Dashboard/DeleteUser/${id}`,
-        { headers: { Authorization: `Bearer ${token}` } }
+      await api.delete(
+        `/api/Dashboard/DeleteUser/${id}`,
       );
 
       setSnackbar({
@@ -179,9 +177,8 @@ export default function UserProfile() {
       </Typography>
       <Box textAlign="center" mb={4}>
         <Avatar
-        src={userData.image}
-        alt={userData.userName[0].toUpperCase()}
-
+          src={userData.image}
+          alt={userData.userName[0].toUpperCase()}
           sx={{
             width: 100,
             height: 100,
@@ -190,10 +187,7 @@ export default function UserProfile() {
             fontSize: "2rem",
             boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.2)",
           }}
-        >
-
-        </Avatar>
-        
+        ></Avatar>
       </Box>
       <Section title="Information">
         <CardContentGrid
@@ -222,7 +216,7 @@ export default function UserProfile() {
             {
               label: (
                 <span style={{ display: "flex", alignItems: "center" }}>
-                  <FacebookIcon style={{ color: "#3b5998", marginRight: 5 }} />
+                  <FacebookIcon style={{ color: "#3b5998", marginRight: 1 }} />
                   Facebook:
                 </span>
               ),
@@ -231,16 +225,16 @@ export default function UserProfile() {
             {
               label: (
                 <span style={{ display: "flex", alignItems: "center" }}>
-                  <GitHubIcon style={{ color: "#000", marginRight: 5 }} />
+                  <GitHubIcon style={{ color: "#000", marginRight: 1 }} />
                   GitHub:
                 </span>
               ),
-              field: "github",
+              field: "gitHub",
             },
             {
               label: (
                 <span style={{ display: "flex", alignItems: "center" }}>
-                  <InstagramIcon style={{ color: "#C13584", marginRight: 5 }} />
+                  <InstagramIcon style={{ color: "#C13584", marginRight: 1 }} />
                   Instagram:
                 </span>
               ),
@@ -249,25 +243,36 @@ export default function UserProfile() {
             {
               label: (
                 <span style={{ display: "flex", alignItems: "center" }}>
-                  <LinkedInIcon style={{ color: "#0077b5", marginRight: 5 }} />
+                  <LinkedInIcon style={{ color: "#0077b5", marginRight: 1 }} />
                   LinkedIn:
                 </span>
               ),
-              field: "linkedin",
+              field: "linkedIn",
             },
           ]}
           userData={userData}
         />
       </Section>
-      <Section title="Roadmaps">
-        <CardContentGrid
-          data={[
-            { label: "Frontend:", field: "frontendRoadmap" },
-            { label: "Backend:", field: "backendRoadmap" },
-          ]}
-          userData={userData}
-        />
-      </Section>
+      {Array.isArray(userData.roadmaps_) &&
+        userData.roadmaps_.length > 0 &&
+        userData.role !== "Admin" && (
+          <Section title="Roadmaps">
+            <Grid container spacing={2}>
+              {userData.roadmaps_.map((rm, i) => (
+                <Grid item xs={12} sm={6} key={i}>
+                  <Box display="flex" alignItems="center">
+                    <Typography fontWeight="bold" sx={{ mr: 1 }}>
+                      {rm.title ?? `Roadmap ${i + 1}`}
+                    </Typography>
+                    <Typography color="text.secondary">
+                      {rm.description ?? rm.value ?? "—"}
+                    </Typography>
+                  </Box>
+                </Grid>
+              ))}
+            </Grid>
+          </Section>
+        )}
       <Box textAlign="center" mb={4}>
         <Button
           variant="contained"
@@ -360,19 +365,34 @@ function CardContentGrid({ data, userData }) {
       <Grid container spacing={2}>
         {data.map(({ label, field }, index) => (
           <Grid item xs={12} sm={6} key={index}>
-            <Box display="flex" alignItems="center" sx={{ ml: 2 }}>
+            <Box
+              display="flex"
+              alignItems="flex-start"
+              flexWrap="wrap" // allow wrapping
+              sx={{ ml: 2 }}
+            >
               <Typography
                 sx={{
                   fontSize: "1rem",
                   fontWeight: "bold",
                   color: theme.palette.text.primary,
                   marginRight: "10px",
+                  flexShrink: 0, // label never shrinks
                 }}
               >
                 {label}
               </Typography>
               <Typography
-                sx={{ fontSize: "1rem", fontWeight: "500", color: "gray" }}
+                sx={{
+                  fontSize: "1rem",
+                  fontWeight: 500,
+                  color: "gray",
+                  // critical styles to wrap long URLs:
+                  wordBreak: "break-all", // break inside long strings
+                  overflowWrap: "anywhere", // another hint to wrap
+                  flex: "1 1 auto", // let the URL grow/shrink
+                  whiteSpace: "normal", // allow normal wrap
+                }}
               >
                 {userData[field] || "null"}
               </Typography>

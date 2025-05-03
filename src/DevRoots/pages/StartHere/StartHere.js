@@ -61,7 +61,7 @@ export default function StartHere() {
   `.trim();
 
   return (
-    <Box sx={{ marginTop: "calc(64px + 2rem)", width: "100%" }}>
+    <Box sx={{ width: "100%" }}>
       <Box sx={containerStyles}>
         <IntroductionSection
           title="Why this section is important for every developer"

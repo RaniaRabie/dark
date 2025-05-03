@@ -35,20 +35,21 @@ import {
   Typography,
   useTheme,
 } from "@mui/material";
-import { useAuth } from "context/AuthContext";
+import { api } from "../../../../services/axiosInstance";
+
 
 const AllRoadmaps = () => {
   const navigate = useNavigate();
   const [roadmaps, setRoadmaps] = useState([]);
   const [open, setOpen] = useState(false);
   const [selectedRoadmapId, setSelectedRoadmapId] = useState(null);
-  const { token } = useAuth();
+  // const api = useAxios();
 
 
   useEffect(() => {
-    axios
+    api
       .get(
-        "https://careerguidance.runasp.net/api/Dashboard/GetALlRoadmapsInDatabase", 
+        "/api/Dashboard/GetALlRoadmapsInDatabase", 
       )
       .then((response) => {
         const parsedRoadmaps = response.data.map((roadmap) => {
@@ -85,14 +86,9 @@ const AllRoadmaps = () => {
 
   const handleDelete = () => {
     if (selectedRoadmapId) {
-      axios
+      api
         .delete(
-          `https://careerguidance.runasp.net/api/Dashboard/Delete/${selectedRoadmapId}`, {
-            headers: {
-              Authorization: `Bearer ${token}`,
-              "Content-Type": "application/json",
-            },
-          }
+          `/api/Dashboard/Delete/${selectedRoadmapId}`, 
         )
         .then(() => {
           setRoadmaps((prevNodes) =>

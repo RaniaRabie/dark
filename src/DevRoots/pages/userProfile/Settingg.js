@@ -1,3 +1,22 @@
+
+/*
+- File Name: Security.js
+- Author: Nourhan Khaled
+- Date of Creation: 10/3/2025
+- Versions Information: 1.0.0
+- Dependencies:
+  {
+  REACT,
+  @mui/material,
+  @mui/icons-material,
+  axiosInstance,
+  context/AuthContext
+  }
+- Contributors:  Rania Rabie , Shrouk Ahmed ,Nourhan Khaled
+- Last Modified Date: 2/5/2025
+- Description: Component for updating user password with validation and API integration
+*/
+
 import React, { useState } from "react";
 import {
   Box,
@@ -19,15 +38,17 @@ import {
   Key as KeyIcon,
 } from "@mui/icons-material";
 import EnhancedEncryptionIcon from "@mui/icons-material/EnhancedEncryption";
-import axios from "axios";
 import { useAuth } from "context/AuthContext";
+import {api} from "../../../services/axiosInstance"
 
+
+// Setting component for updating user password
 const Setting = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm")); // <= 600px
   const isTablet = useMediaQuery(theme.breakpoints.between("sm", "md")); // 600px - 960px
 
-  // State declarations
+  // State for form inputs, errors, and UI controls
   const [error, setError] = useState("");
   const [passwordMatch, setPasswordMatch] = useState(true);
   const [currentPassword, setCurrentPassword] = useState("");
@@ -40,13 +61,18 @@ const Setting = () => {
   const [confirmTooltipOpen, setConfirmTooltipOpen] = useState(false);
   const [isTypingPassword, setIsTypingPassword] = useState(false);
 
-  const { userId } = useAuth();
+  const { user } = useAuth();
+  const userId = user?.id;
 
-  // Handlers
+  // Toggle password visibility
   const handleToggleShowPassword = () => setShowPassword(!showPassword);
+
+  // Close snackbar
   const handleCloseSnackbar = () => setOpenSnackbar(false);
 
+  // Handle form submission and password update
   const handleSubmit = async () => {
+    // Validate password requirements
     const validations = {
       minLength: password.length >= 8,
       hasUpperCase: /[A-Z]/.test(password),
@@ -56,6 +82,7 @@ const Setting = () => {
       match: password === confirmPassword,
     };
 
+    // Check if new password matches current password
     if (password === currentPassword) {
       setErrorMessage(
         "New password must not be the same as the current password"
@@ -64,6 +91,7 @@ const Setting = () => {
       return;
     }
 
+    // Check if all validations pass
     const allValid = Object.values(validations).every(Boolean);
     if (!allValid) {
       setErrorMessage("Please meet all the password requirements.");
@@ -71,42 +99,35 @@ const Setting = () => {
       return;
     }
 
-    const token = localStorage.getItem("accessToken");
 
     try {
-      const verifyResponse = await axios.get(
-        `https://careerguidance.runasp.net/api/userProfile/GetUserById/${userId}`,
-        {
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-        }
+      // Fetch user data to verify
+      const verifyResponse = await api.get(
+        `/api/userProfile/GetUserById/${userId}`,
+
       );
 
       const userData = verifyResponse.data;
 
-      await axios.put(
-        `https://careerguidance.runasp.net/api/userProfile/UpdatePassword/${userId}`,
+      // Update password via API
+      await api.put(
+        `/api/userProfile/UpdatePassword/${userId}`,
         {
           ...userData,
           OldPassword: currentPassword,
           NewPassword: password,
           confirmPassword: password,
         },
-        {
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-        }
+
       );
       setErrorMessage("Password updated successfully");
       setOpenSnackbar(true);
+      // Reset form fields
       setCurrentPassword("");
       setPassword("");
       setConfirmPassword("");
     } catch (error) {
+      // Handle API errors
       let msg = "An unexpected error occurred.";
       if (error.response && error.response.data?.errors) {
         const backendErrors = error.response.data.errors;
@@ -121,8 +142,26 @@ const Setting = () => {
       setOpenSnackbar(true);
     }
   };
-  // Responsive TextField styles
-  const textFieldStyle = {
+
+  // Styles for input fields
+  const inputStyleFull = {
+    width: { xs: "100%", sm: "90%", md: "85%", lg: "100%" },
+    "& .MuiInputLabel-root": {
+      color: theme.palette.text.primary,
+    },
+    "& .MuiInputLabel-root.Mui-focused": {
+      color: theme.palette.text.primary,
+    },
+    "& .MuiOutlinedInput-root": {
+      borderRadius: "25px",
+      height: "45px",
+      paddingRight: 1,
+      backgroundColor: "transparent",
+      "& fieldset": { border: "1px solid #ee6c4d" },
+      "&:hover fieldset": { borderColor: "#ee6c4d" },
+      "&.Mui-focused fieldset": { borderColor: "#ee6c4d" },
+    },
+
     "& input:-webkit-autofill": {
       WebkitBoxShadow: "0 0 0 10px transparent inset",
       backgroundColor: "transparent",
@@ -134,50 +173,89 @@ const Setting = () => {
       WebkitBoxShadow: "0 0 0 10px transparent inset",
       transition: "background-color 5000s ease-in-out 0s",
     },
-    "& .MuiOutlinedInput-root": {
-      borderRadius: "25px",
-      width: { xs: "100%", sm: "320px" },
-      height: { xs: "40px", sm: "37px" },
-      margin: { xs: "10px 0", sm: "15px 0" },
-      border: "1px solid gray",
-      "& fieldset": {
-        border: "none",
-      },
-    },
-    "& .MuiInputBase-root": {
-      "&.Mui-focused": {
-        borderColor: "#ee6c4d",
-      },
-    },
-    "& .MuiInputLabel-root": {
-      fontSize: { xs: "0.9rem", sm: "1rem" },
-    },
   };
 
+  // Input adornment with custom icons
+  const adornmentProps = (icon) => ({
+    startAdornment: (
+      <InputAdornment position="start">
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            height: "100%",
+          }}
+        >
+          {React.cloneElement(icon, {
+            style: {
+              color: "#ee6c4d",
+              fontSize: 25,
+              ...icon.props?.style,
+            },
+          })}
+          <div
+            style={{
+              height: "30px",
+              width: "2px",
+              backgroundColor: "#ee6c4d",
+              marginLeft: "8px",
+              marginRight: "4px",
+              borderRadius: "1px",
+            }}
+          />
+        </div>
+      </InputAdornment>
+    ),
+  });
+
+  // Render the password update form
   return (
     <Box
       sx={{
-        maxWidth: { xs: "100%", sm: "500px", md: "600px" },
+        maxWidth: { xs: "100%", sm: "500px", md: "500px" },
         mx: "auto",
-        p: { xs: 2, sm: 3, md: 4 },
-        borderRadius: 2,
-        boxShadow: { xs: 1, sm: 2 },
-        backgroundColor: theme.palette.background.paper,
-        minHeight: { xs: "auto", md: "400px" },
+        p: { xs: 3, sm: 4 },
+        borderRadius: "20px",
+        boxShadow: "0 8px 32px rgba(0, 0, 0, 0.2)",
+        bgcolor: theme.palette.background.paper,
+        border: `1px solid ${theme.palette.divider}`,
+        opacity: 0,
+        transform: "translateY(20px)",
+        animation: "fadeInUp 0.6s ease-out forwards",
+        "@keyframes fadeInUp": {
+          to: {
+            opacity: 1,
+            transform: "translateY(0)",
+          },
+        },
       }}
     >
-      {/* Title */}
-      <Box sx={{ display: "flex", alignItems: "center", mb: { xs: 1, sm: 2 } }}>
+      {/* Title with animated underline */}
+      <Box sx={{ textAlign: "center", mb: 4 }}>
         <Typography
+          variant="h4"
           sx={{
             color: theme.palette.text.primary,
-            fontSize: { xs: "1.5rem", sm: "2rem", md: "2.25rem" },
             fontWeight: "bold",
-            m: "auto",
+            fontSize: { xs: "1.5rem", sm: "2rem", md: "2.25rem" },
+            position: "relative",
+            pb: 1,
             textShadow: "1px 1px 1px rgba(255, 255, 255, 0.5)",
           }}
         >
-          Security Settings
+          Change Password
+          <Box
+            sx={{
+              position: "absolute",
+              bottom: 0,
+              left: "50%",
+              transform: "translateX(-50%)",
+              width: "60px",
+              height: "4px",
+              bgcolor: "#ee6c4d",
+              borderRadius: "2px",
+            }}
+          />
         </Typography>
       </Box>
 
@@ -202,32 +280,14 @@ const Setting = () => {
             fullWidth
             autoComplete="off"
             margin="normal"
-            sx={textFieldStyle}
+            sx={inputStyleFull}
             InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">
-                  <Box
-                    sx={{
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      borderRight: "2px solid #ee6c4d",
-                      pr: 1,
-                    }}
-                  >
-                    <KeyIcon
-                      sx={{
-                        color: "#ee6c4d",
-                        fontSize: { xs: 24, sm: 30 },
-                      }}
-                    />
-                  </Box>
-                </InputAdornment>
-              ),
+              ...adornmentProps(<KeyIcon />),
             }}
           />
         </Box>
 
+        {/* Display error message if present */}
         {error && (
           <Typography
             color="error"
@@ -258,32 +318,13 @@ const Setting = () => {
             margin="normal"
             onFocus={() => setTooltipOpen(true)}
             onBlur={() => setTooltipOpen(false)}
-            sx={textFieldStyle}
+            sx={inputStyleFull}
             InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">
-                  <Box
-                    sx={{
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      borderRight: "2px solid #ee6c4d",
-                      pr: 1,
-                    }}
-                  >
-                    <LockIcon
-                      sx={{
-                        color: "#ee6c4d",
-                        fontSize: { xs: 24, sm: 30 },
-                      }}
-                    />
-                  </Box>
-                </InputAdornment>
-              ),
+              ...adornmentProps(<LockIcon />),
             }}
           />
 
-          {/* Tooltip for New Password */}
+          {/* Tooltip for password requirements */}
           <Tooltip
             title={
               <Box sx={{ width: { xs: 180, sm: 230 }, p: 1 }}>
@@ -400,28 +441,9 @@ const Setting = () => {
             margin="normal"
             onFocus={() => setConfirmTooltipOpen(true)}
             onBlur={() => setConfirmTooltipOpen(false)}
-            sx={textFieldStyle}
+            sx={inputStyleFull}
             InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">
-                  <Box
-                    sx={{
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      borderRight: "2px solid #ee6c4d",
-                      pr: 1,
-                    }}
-                  >
-                    <EnhancedEncryptionIcon
-                      sx={{
-                        color: "#ee6c4d",
-                        fontSize: { xs: 24, sm: 30 },
-                      }}
-                    />
-                  </Box>
-                </InputAdornment>
-              ),
+              ...adornmentProps(<EnhancedEncryptionIcon />),
               endAdornment: (
                 <InputAdornment position="end">
                   <IconButton
@@ -437,7 +459,7 @@ const Setting = () => {
             }}
           />
 
-          {/* Tooltip for Confirm Password */}
+          {/* Tooltip for password match validation */}
           <Tooltip
             title={
               <Typography
@@ -490,7 +512,7 @@ const Setting = () => {
         </Box>
       </Box>
 
-      {/* Submit Button */}
+      {/* Submit button */}
       <Box
         sx={{ display: "flex", justifyContent: "center", mt: { xs: 2, sm: 3 } }}
       >
@@ -513,10 +535,10 @@ const Setting = () => {
         </Button>
       </Box>
 
-      {/* Snackbar */}
+      {/* Snackbar for user feedback */}
       <Snackbar
         open={openSnackbar}
-        autoHideDuration={6000}
+        autoHideDuration={2000}
         onClose={handleCloseSnackbar}
         anchorOrigin={{ vertical: "top", horizontal: "center" }}
         sx={{

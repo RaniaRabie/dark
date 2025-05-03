@@ -21,9 +21,10 @@ import {
 } from "@mui/icons-material";
 import { FaBars } from "react-icons/fa";
 import { motion, AnimatePresence } from "framer-motion";
-import axios from "axios";
 import { useAuth } from "context/AuthContext"; // Import useAuth
 import { useNavigate } from "react-router-dom";
+import {api} from "../../../services/axiosInstance"
+
 
 // Base tab items (excluding login/logout, which will be added dynamically)
 const tabItems = [
@@ -38,19 +39,19 @@ const SideBaR = ({ tab, setTab }) => {
   const isMobile = useMediaQuery("(max-width:600px)");
   const [isOpen, setIsOpen] = useState(!isMobile);
   const [userInfo, setUserInfo] = useState({});
-  const { user, userId, logout, token } = useAuth(); // Use AuthContext
   const navigate = useNavigate();
   const theme = useTheme();
+  const { user, logout } = useAuth(); // Use AuthContext
+  const userId = user?.id;
 
- // Fetch user info when user and token are available
- useEffect(() => {
-  if (userId && token) {
-    axios
+  // Fetch user info when userId 
+  useEffect(() => {
+
+    if (userId ) {
+      api
       .get(
-        `https://careerguidance.runasp.net/api/userProfile/GetUserById/${userId}`,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
+        `/api/userProfile/GetUserById/${userId}`,
+
       )
       .then((res) => {
         setUserInfo(res.data || {});
@@ -58,18 +59,21 @@ const SideBaR = ({ tab, setTab }) => {
       .catch((err) => {
         console.error("Error fetching user data", err);
       });
-  } else {
-    setUserInfo({}); // Clear user info if not logged in
-  }
-}, [userId, token]);
+    } else {
+      setUserInfo({}); // Clear user info if not logged in
+    }
+  }, [userId]);
 
-// Handle tab clicks
-const handleTabClick = (label) => {
-  if (label === "Logout") {
-    logout(); // Clear auth data via AuthContext
-  }
-};
+  // Handle tab clicks
+  const handleTabClick = (label) => {
+    if (label === "Logout") {
+      logout();
+      navigate("/registration");
+      window.location.reload();
+    }
+  };
 
+  // Dynamically set tab items based on authentication state
 
   const sidebarWidth = isOpen ? (isMobile ? 240 : 300) : 64;
   const typographySx = {
@@ -96,8 +100,8 @@ const handleTabClick = (label) => {
         position: "fixed",
         top: isMobile ? 50 : 64,
         left: 0,
-        height: "100vh",
-        background:
+        height: "calc(100vh)",
+        background: 
           theme.palette.mode === "dark"
             ? "linear-gradient(180deg, #1E2A3C 0%, #2A3B52 100%)"
             : "linear-gradient(180deg, #F5F7FA 0%, #E8ECEF 100%)",

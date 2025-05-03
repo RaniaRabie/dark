@@ -1,10 +1,15 @@
 import { useState, useEffect } from "react";
-import { Box, Paper, Typography, CircularProgress } from "@mui/material";
+import {
+  Box,
+  Paper,
+  Typography,
+  CircularProgress,
+  useTheme,
+} from "@mui/material";
 import { DataGrid, GridToolbarQuickFilter } from "@mui/x-data-grid";
 import GroupIcon from "@mui/icons-material/Group";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
-import { useAuth } from "../../../../context/AuthContext";
+import { api } from "../../../../services/axiosInstance";
 
 export default function AllUsers() {
   const [rows, setRows] = useState([]);
@@ -12,7 +17,7 @@ export default function AllUsers() {
   const [error, setError] = useState(null);
   const navigate = useNavigate();
   const paginationModel = { page: 0, pageSize: 9 };
-  const {token} = useAuth();
+  const theme = useTheme();
 
   useEffect(() => {
     const fetchUsers = async () => {
@@ -20,17 +25,8 @@ export default function AllUsers() {
       setError(null);
 
       try {
-        if (!token) throw new Error("No access token found");
+        const response = await api.get("/api/Dashboard/GetAllUsers", {});
 
-        // Use apiClient for the API call, which handles token refresh
-        const response = await axios.get(
-          "https://careerguidance.runasp.net/api/Dashboard/GetAllUsers",
-          {
-            headers: { Authorization: `Bearer ${token}` },
-          }
-        );
-
-        // Format the response data
         const formattedData = response.data.map((user) => ({
           id: user.id,
           name: user.userName,
@@ -48,24 +44,7 @@ export default function AllUsers() {
     };
 
     fetchUsers();
-  }, [token]); // Add token as a dependency to re-fetch if token changes
-
-  const columns = [
-    {
-      field: "name",
-      headerName: "Username",
-      width: 210,
-      headerAlign: "center",
-    },
-    { field: "email", headerName: "Email", width: 220, headerAlign: "center" },
-    {
-      field: "role",
-      headerName: "Role",
-      width: 120,
-      headerAlign: "center",
-      align: "center",
-    },
-  ];
+  }, []);
 
   const handleRowClick = (params) => {
     navigate(`/dashboard/profile/${params.row.id}`, { state: params.row });
@@ -105,15 +84,19 @@ export default function AllUsers() {
         }}
       >
         <DataGrid
-          // @ts-ignore
           slots={{ toolbar: GridToolbarQuickFilter }}
           rows={rows}
-          // @ts-ignore
           columns={columns}
           initialState={{ pagination: { paginationModel } }}
           sx={{
             border: 0,
             "& .MuiDataGrid-row:hover": { cursor: "pointer" },
+            "& .MuiCheckbox-root": {
+              color: theme.palette.text.primary, // unselected border color
+            },
+            "& .Mui-checked": {
+              color: "#ee6c4d", // your preferred checked color
+            },
           }}
           pageSizeOptions={[5, 10]}
           checkboxSelection
@@ -125,3 +108,20 @@ export default function AllUsers() {
     </>
   );
 }
+
+const columns = [
+  {
+    field: "name",
+    headerName: "Username",
+    width: 210,
+    headerAlign: "center",
+  },
+  { field: "email", headerName: "Email", width: 220, headerAlign: "center" },
+  {
+    field: "role",
+    headerName: "Role",
+    width: 120,
+    headerAlign: "center",
+    align: "center",
+  },
+];

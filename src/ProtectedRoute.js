@@ -14,9 +14,11 @@
 */
 import React from "react";
 import { Navigate } from "react-router-dom";
+import { useAuth } from "./context/AuthContext";
+
 
 const PrivateRoute = ({ children, allowedRoles }) => {
-  const user = JSON.parse(localStorage.getItem("user"));
+  const { user } = useAuth();
 
   // Default role to "Student" if not specified
   const role = user?.role || "Student";

@@ -62,7 +62,7 @@ import Sidebar from "./Sidebar";
 import { DnDProvider, useDnD } from "./DnDContext";
 import "./CreateRoadmap.css";
 import FourHandlesNode from "./FourHandlesNode";
-import { useAuth } from "context/AuthContext";
+import { api } from "../../../../services/axiosInstance";
 
 function TabPanel(props) {
   const { children, value, index, ...other } = props;
@@ -111,7 +111,7 @@ const DnDFlow = () => {
   const navigate = useNavigate();
   const [roadmap, setRoadmap] = useState(null);
   const { id } = useParams();
-  const { token } = useAuth();
+  // const api = useAxios();
 
   const nodeTypes = {
     fourhandles: FourHandlesNode,
@@ -398,8 +398,8 @@ const DnDFlow = () => {
   //     // Convert dataToPublish to a JSON string
   //     const dataString = JSON.stringify(roadmapData);
 
-  //     axios
-  //       .post("https://careerguidance.runasp.net/api/Dashboard/AddDataForRoadmap", { roadmapData: dataString }) // Send as a string
+  //     api
+  //       .post("/api/Dashboard/AddDataForRoadmap", { roadmapData: dataString }) // Send as a string
   //       .then((response) => {
   //         console.log("Nodes data successfully stored:", response.data);
   //       })
@@ -424,15 +424,9 @@ const DnDFlow = () => {
 
     try {
       // Post data to the server
-      const response = await axios.post(
-        "https://careerguidance.runasp.net/api/Dashboard/AddRoadmapData",
+      const response = await api.post(
+        "/api/Dashboard/AddRoadmapData",
         { roadmapData: JSON.stringify(roadmapData) },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-        }
       );
 
       // console.log("Nodes data successfully stored:", response.data);
@@ -462,8 +456,8 @@ const DnDFlow = () => {
   //Fetch roadmap and nodes by ID
   useEffect(() => {
     if (isUpdatePath) {
-      axios
-        .get(`https://careerguidance.runasp.net/api/Dashboard/GetById/${id}`)
+      api
+        .get(`/api/Dashboard/GetById/${id}`)
         .then((response) => {
           let parsedRoadmap = response.data.roadmapData;
           if (typeof parsedRoadmap === "string") {
@@ -528,18 +522,12 @@ const DnDFlow = () => {
     const stringifiedroadmapData = JSON.stringify(roadmapData);
 
     // Send the stringified data to the server
-    axios
+    api
       .put(
-        `https://careerguidance.runasp.net/api/Dashboard/Update/${id}`,
+        `/api/Dashboard/Update/${id}`,
         {
           roadmapData: stringifiedroadmapData,
         },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-        }
       )
       .then(() => {
         // console.log("Roadmap updated successfully.");

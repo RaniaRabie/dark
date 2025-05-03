@@ -1,3 +1,23 @@
+/*
+- File Name: Header.jsx
+- Author: 
+- Date of Creation: 10/4/2025
+- Versions Information: 1.0.0
+- Dependencies:
+  {
+    React,
+    @mui/material,
+    @mui/system,
+    react-icons/fi,
+    react-router-dom,
+    axios,
+    context/AuthContext
+  }
+- Contributors: Shrouk Ahmed,Nourhan Khaled,Rania Rabie
+- Last Modified Date: 01/5/2025
+- Description: Navigation bar component with profile menu, search, theme toggle, and role-based access control
+*/
+
 import React, { useEffect, useState } from "react";
 import {
   AppBar,
@@ -19,25 +39,28 @@ import {
   ListItem,
 } from "@mui/material";
 import { styled } from "@mui/system";
-import {
-  FiMenu,
-  FiSearch,
-  FiHelpCircle,
-  FiSettings,
-  FiLogOut,
-  FiUser,
-} from "react-icons/fi";
+import { FiMenu, FiSearch, FiGrid, FiLogOut, FiUser } from "react-icons/fi";
 import DarkModeOutlinedIcon from "@mui/icons-material/DarkModeOutlined";
 import LightModeOutlinedIcon from "@mui/icons-material/LightModeOutlined";
 import logo from "../../assests/devroots logo.png";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "context/AuthContext";
-import axios from "axios";
+import { api } from "../../services/axiosInstance";
+import { Tablet } from "@mui/icons-material";
 
 const StyledAppBar = styled(AppBar)(() => ({
   background: "linear-gradient(90deg, #1a2634 0%, #293241 100%)",
   boxShadow: "0 4px 12px rgba(0, 0, 0, 0.15)",
   borderBottom: "1px solid rgba(255, 255, 255, 0.1)",
+    // "&::after": {
+    //   content: '""',
+    //   position: "absolute",
+    //   bottom: 0,
+    //   left: 0,
+    //   right: 0,
+    //   height: "3px",
+    //   background: "linear-gradient(90deg, #ee6c4d 0%, #7c4dff 100%)",
+    // },
 }));
 
 const Logo = styled("img")({
@@ -133,9 +156,12 @@ const Header = ({ setMode }) => {
   const [error, setError] = useState(null);
   const navigate = useNavigate();
   const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down("md"));
-  const [userInfo, setUserInfo] = useState([])
-    const {user, token, userId, logout } = useAuth();
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
+  const isTablet = useMediaQuery(theme.breakpoints.down("lg"));
+  const isBigger = useMediaQuery(theme.breakpoints.up("lg"));
+
+  const [userInfo, setUserInfo] = useState({});
+  const { user, logout } = useAuth();
 
   const handleProfileMenuOpen = (event) => {
     setProfileMenuAnchor(event.currentTarget);
@@ -146,15 +172,16 @@ const Header = ({ setMode }) => {
   };
 
   useEffect(() => {
-    
     if (user) {
       setIsLoggedIn(true);
-      fetchUserProfile(userId, token);
+      fetchUserProfile(user?.id);
     }
-  }, [token, user, userId] );
+  }, [user]);
 
   const handleLogout = () => {
-    logout()
+    logout();
+    navigate("/registration");
+    setIsLoggedIn(false);
   };
 
   const toggleTheme = () => {
@@ -168,37 +195,33 @@ const Header = ({ setMode }) => {
     { text: "Start Here", id: "startHere", path: "/startHere" },
     { text: "All Roadmaps", id: "all-roaadmaps", path: "/allroadmaps" },
     { text: "Interviews", id: "interviews" },
-    { text: "About Us", id: "about-us" },
+    { text: "About Us", id: "about-us", path: "/about-us" },
   ];
 
   const profileMenuItems = [
-    { text: "Profile", icon: <FiUser />, path: "/updateUser" },
-    { text: "Settings", icon: <FiSettings /> },
-    { text: "Help Center", icon: <FiHelpCircle /> },
+    ...(user?.role !== "Admin"
+      ? [{ text: "Profile", icon: <FiUser />, path: "/userProfile" }]
+      : []),
+    ...(user?.role === "Admin"
+      ? [{ text: "Dashboard", icon: <FiGrid />, path: "dashboard" }]
+      : []),
   ];
 
-  const fetchUserProfile = async (userId, token) => {
+  const fetchUserProfile = async (userId) => {
     try {
-      const response = await axios.get(
-        `https://careerguidance.runasp.net/api/userProfile/GetUserById/${userId}`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+      const response = await api.get(`/api/userProfile/GetUserById/${userId}`);
       setUserInfo(response.data); // Store profile data
-      // console.log(response.data)
+      console.log(response.data);
     } catch (error) {
-      setError('Failed to fetch user profile. Please try again.');
+      setError("Failed to fetch user profile. Please try again.");
       console.error(error);
-    } 
+    }
   };
 
   return (
     <StyledAppBar position="fixed" sx={{ top: 0, zIndex: 100 }}>
       <Toolbar sx={{ justifyContent: "space-between", padding: "0 16px" }}>
-        {isMobile && (
+        {(isMobile || isTablet) && (
           <IconButton
             color="inherit"
             edge="start"
@@ -220,7 +243,25 @@ const Header = ({ setMode }) => {
           }}
         />
 
-        {!isMobile && (
+        {(isTablet && !isMobile)  && (
+          <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+            <SearchField
+              placeholder="Search ..."
+              variant="outlined"
+              size="small"
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <FiSearch color="#ffffff" />
+                  </InputAdornment>
+                ),
+              }}
+              sx={{ width: "320px" }}
+            />
+          </Box>
+        )}
+
+        {(isBigger) && (
           <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
             <Box sx={{ display: "flex", alignItems: "center" }}>
               {navigationItems.map((item) => (
@@ -272,16 +313,13 @@ const Header = ({ setMode }) => {
                   "&:hover": { backgroundColor: "rgba(255, 255, 255, 0.1)" },
                 }}
               >
-                <Avatar
-                  src={userInfo.imageUrl || ""}
-                  alt="User Profile"
-                />
+                <Avatar src={userInfo.imageUrl || ""} alt="User Profile" />
               </IconButton>
             </Tooltip>
           ) : (
             <RigisterButton
               variant="contained"
-              onClick={() => navigate("/regesteration")}
+              onClick={() => navigate("/registration")}
             >
               Register
             </RigisterButton>

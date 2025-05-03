@@ -5,28 +5,29 @@
 - Versions Information: 1.0.0
 - Dependencies:
   {
-  REACT , 
-  MUI ,
-  react-router-dom ,
+  REACT,
+  MUI,
+  react-router-dom,
   react-icons,
   framer-motion,
   sideBar.css,
-  SidebarMenu file
+  SidebarMenu file,
+  axios,
+  AuthContext
   }
-- Contributors: shrouk ahmed , rania rabie ,nourhan khaled
-- Last Modified Date: 10/12/2024
-- Description : dashboard sidebar
+- Contributors: shrouk ahmed, rania rabie, nourhan khaled
+- Last Modified Date: 25/4/2025
+- Description: dashboard sidebar with settings sub-routes and top-level logout functionality
 */
 
-
-import { NavLink } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
 import { FaBars, FaHome } from "react-icons/fa";
 import { BiAnalyse } from "react-icons/bi";
 import { BiCog } from "react-icons/bi";
 import { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import SidebarMenu from "../components/SidebarMenu";
-
+import { useAuth } from "context/AuthContext"; // Import AuthContext for logout
 import BarChartIcon from "@mui/icons-material/BarChart";
 import PieChartIcon from "@mui/icons-material/PieChart";
 import ShowChartIcon from "@mui/icons-material/ShowChart";
@@ -36,13 +37,15 @@ import PersonSearchIcon from "@mui/icons-material/PersonSearch";
 import AddRoadIcon from "@mui/icons-material/AddRoad";
 import EditRoadIcon from "@mui/icons-material/EditRoad";
 import LiveHelpIcon from "@mui/icons-material/LiveHelp";
+import AccountCircle from "@mui/icons-material/AccountCircle";
+import Person from "@mui/icons-material/Person";
+import Security from "@mui/icons-material/Security";
+import ExitToApp from "@mui/icons-material/ExitToApp";
 import "./sideBar.css";
 import CategoryIcon from '@mui/icons-material/Category';
 import ViewCarouselIcon from '@mui/icons-material/ViewCarousel';
 import AddIcon from '@mui/icons-material/Add';
-import { useTheme } from "@mui/material";
-
-
+import { Box, IconButton, useTheme } from "@mui/material";
 
 const routes = [
   {
@@ -50,7 +53,6 @@ const routes = [
     name: "Home",
     icon: <FaHome />,
   },
-
   {
     path: "/Analytics",
     name: "Analytics",
@@ -58,7 +60,7 @@ const routes = [
     subRoutes: [
       {
         path: "/dashboard/barchart",
-        name: "Bar Chart ",
+        name: "Bar Chart",
         icon: <BarChartIcon />,
       },
       {
@@ -73,7 +75,6 @@ const routes = [
       },
     ],
   },
-
   {
     path: "/Users",
     name: "Users",
@@ -81,7 +82,7 @@ const routes = [
     subRoutes: [
       {
         path: "/dashboard/allusers",
-        name: "All Users ",
+        name: "All Users",
         icon: <PersonSearchIcon />,
       },
       {
@@ -91,9 +92,6 @@ const routes = [
       },
     ],
   },
-
-  
-
   {
     path: "/dashboard/roadmap",
     name: "Roadmap",
@@ -111,7 +109,6 @@ const routes = [
       },
     ],
   },
-
   {
     path: "/dashboard/roadmap",
     name: "Carousel",
@@ -129,26 +126,47 @@ const routes = [
       },
     ],
   },
-
   {
     path: "/dashboard/faq",
     name: "FAQ",
     icon: <LiveHelpIcon />,
     exact: true,
   },
-
   {
-    path: "/dashboard/setting",
     name: "Settings",
     icon: <BiCog />,
-    exact: true,
+    subRoutes: [
+      {
+        path: "/dashboard/setting",
+        name: "Profile Settings",
+        icon: <AccountCircle />,
+      },
+      {
+        path: "/dashboard/socialmedia",
+        name: "SocialMedia",
+        icon: <Person />,
+      },
+      {
+        path: "/dashboard/security",
+        name: "Security",
+        icon: <Security />,
+      },
+    ],
   },
 ];
 
 const SideBar = ({ children }) => {
   const [isOpen, setIsOpen] = useState(false);
   const toggle = () => setIsOpen(!isOpen);
-  const theme = useTheme()
+  const theme = useTheme();
+  const { logout } = useAuth(); // Use AuthContext for logout
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    logout();
+    navigate("/registration");
+    window.location.reload()
+  };
 
   const inputAnimation = {
     hidden: {
@@ -186,7 +204,7 @@ const SideBar = ({ children }) => {
 
   return (
     <>
-      <div >
+      <div>
         <div>
           <motion.div
             animate={{
@@ -194,7 +212,7 @@ const SideBar = ({ children }) => {
               transition: { duration: 0.5, type: "spring", damping: 10 },
             }}
             className={`sidebar`}
-            style={{ backgroundColor: theme.palette.mode === "dark" ? "#1d242f" : "#1d242f",}}
+            style={{ backgroundColor: theme.palette.mode === "dark" ? "#1d242f" : "#1d242f" }}
           >
             <div className="top_section">
               <AnimatePresence>
@@ -254,18 +272,33 @@ const SideBar = ({ children }) => {
                   </NavLink>
                 );
               })}
+              <div className="link" onClick={handleLogout}>
+                <Box className="icon" sx={{cursor:"pointer"}}><ExitToApp /></Box>
+                <AnimatePresence>
+                  {isOpen && (
+                    <motion.div
+                      variants={showAnimation}
+                      initial="hidden"
+                      animate="show"
+                      exit="hidden"
+                      className="link_text"
+                    >
+                      Logout
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
             </section>
           </motion.div>
           <motion.main
-        animate={{
-          marginLeft: isOpen ? "170px" : "45px",
-          transition: { duration: 0.5 },
-        }}
-        className="main-content"
-      >
-        {children}
-      </motion.main>
-          <main>{children}</main>
+            animate={{
+              marginLeft: isOpen ? "170px" : "45px",
+              transition: { duration: 0.5 },
+            }}
+            className="main-content"
+          >
+            {children}
+          </motion.main>
         </div>
       </div>
     </>

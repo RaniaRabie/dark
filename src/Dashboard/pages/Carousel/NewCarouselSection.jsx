@@ -45,7 +45,7 @@ import AccordionDetails from "@mui/material/AccordionDetails";
 import ArrowDownwardIcon from "@mui/icons-material/ArrowDownward";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
-import { useAuth } from "../../../context/AuthContext";
+import { api } from "../../../services/axiosInstance";
 
 export default function NewCarouselSection() {
   const [newCarouselSection, setNewCarouselSection] = useState("");
@@ -83,13 +83,12 @@ export default function NewCarouselSection() {
     }));
   };
 
-  const { token } = useAuth();
-
+  // const api = useAxios();
   // Fetch all carousel sections
   const fetchCarouselSections = async () => {
     try {
-      const response = await axios.get(
-        "https://careerguidance.runasp.net/api/Dashboard/GetAllCarouselSection"
+      const response = await api.get(
+        "/api/Dashboard/GetAllCarouselSection"
       );
       setCarouselSections(response.data);
       // console.log("Fetched sections:", response.data);
@@ -106,62 +105,17 @@ export default function NewCarouselSection() {
   }, []);
 
   // POST: Add a new carousel section
-  // const handleNewCarouselSectionClick = async () => {
-  //   setTouched({ newCarouselSection: true });
-  //   const errors = validateFields();
-
-  //   if (!errors.newCarouselSection) {
-  //     try {
-  //       await axios.post(
-  //         "https://careerguidance.runasp.net/api/Dashboard/AddCarouselSection",
-  //         {
-  //           newCarouselSection: newCarouselSection,
-  //         },
-  //         {
-  //           headers: {
-  //             Authorization: `Bearer ${token}`,
-  //             "Content-Type": "application/json",
-  //           },
-  //         }
-  //       );
-
-  //       // Reset form and refresh the list
-  //       setNewCarouselSection("");
-  //       setTouched({ newCarouselSection: false });
-  //       await fetchCarouselSections(); // Refresh the list to avoid ID conflicts
-  //     } catch (error) {
-  //       console.error("Error sending data:", error);
-  //       let message = "An unexpected error occurred.";
-  //       if (error.response) {
-  //         const { status, data } = error.response;
-  //         if ([400, 409, 401].includes(status)) {
-  //           message = data.message || data;
-  //         }
-  //       }
-  //       setErrorMessage(message);
-  //       setOpenSnackbar(true);
-  //     }
-  //   }
-  // };
-
-  // POST: Add a new carousel section
   const handleNewCarouselSectionClick = async () => {
     setTouched({ newCarouselSection: true });
     const errors = validateFields();
 
     if (!errors.newCarouselSection) {
       try {
-        await axios.post(
-          "https://careerguidance.runasp.net/api/Dashboard/AddCarouselSection",
+        await api.post(
+          "/api/Dashboard/AddCarouselSection",
           {
             newCarouselSection: newCarouselSection,
           },
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-              "Content-Type": "application/json",
-            },
-          }
         );
 
         // Reset form and refresh the list
@@ -192,16 +146,10 @@ export default function NewCarouselSection() {
 
     if (!errors.newCarouselSection && carouselSectionId) {
       try {
-        await axios.put(
-          `https://careerguidance.runasp.net/api/Dashboard/UpdateCarouselSection/${carouselSectionId}`,
+        await api.put(
+          `/api/Dashboard/UpdateCarouselSection/${carouselSectionId}`,
           {
             newCarouselSection: newCarouselSection,
-          },
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-              "Content-Type": "application/json",
-            },
           }
         );
 
@@ -233,15 +181,9 @@ export default function NewCarouselSection() {
   // delete
   const handleDelete = () => {
     if (carouselSectionId) {
-      axios
+      api
         .delete(
-          `https://careerguidance.runasp.net/api/Dashboard/DeleteCarouselSection/${carouselSectionId}`,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-              "Content-Type": "application/json",
-            },
-          }
+          `/api/Dashboard/DeleteCarouselSection/${carouselSectionId}`,
         )
         .then(() => {
           setCarouselSections((prevSections) =>

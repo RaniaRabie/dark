@@ -27,10 +27,9 @@ import {
   Alert,
 } from "@mui/material";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
-import axios from "axios";
 import { useEdgesState, useNodesState } from "@xyflow/react";
 import { RoadmapContext } from "./RoadmapContext";
-import { useAuth } from "context/AuthContext";
+import { api } from "../../../../services/axiosInstance";
 
 export default function RoadmapDetails() {
   const {
@@ -65,13 +64,13 @@ export default function RoadmapDetails() {
   const [categories, setCategories] = useState([]);
   const [openSnackbar, setOpenSnackbar] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
-  const { token } = useAuth();
+  // const api = useAxios();
 
   useEffect(() => {
     // Fetch categories from the server
-    axios
+    api
       .get(
-        "https://careerguidance.runasp.net/api/Dashboard/GetAllCategoryInDatabase"
+        "/api/Dashboard/GetAllCategoryInDatabase"
       )
       .then((response) => {
         setCategories(response.data); // Store fetched categories in state
@@ -92,17 +91,11 @@ export default function RoadmapDetails() {
         edges,
       });
 
-      await axios.put(
-        `https://careerguidance.runasp.net/api/Dashboard/Update/${id}`,
+      await api.put(
+        `/api/Dashboard/Update/${id}`,
         {
           roadmapData: parsedRoadmap,
         },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-        }
       );
 
       // console.log("Roadmap updated successfully.");
@@ -146,20 +139,14 @@ export default function RoadmapDetails() {
     ) {
       try {
         // Make an API call to check if the roadmap name exists
-        const response = await axios.post(
-          "https://careerguidance.runasp.net/api/Dashboard/CheckRoadmapInformation",
+        const response = await api.post(
+          "/api/Dashboard/CheckRoadmapInformation",
           {
             category: roadmapCategory,
             roadmapName: roadmapName, // Assuming `name` is the roadmap name variable
             discription: roadmapDescription,
             imageUrl: imageUrl,
           },
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-              "Content-Type": "application/json",
-            },
-          }
         );
 
         if (response.status === 200) {

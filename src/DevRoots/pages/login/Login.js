@@ -15,17 +15,18 @@ import {
 
 import PersonIcon from "@mui/icons-material/Person";
 import LockIcon from "@mui/icons-material/Lock";
-import axios from "axios";
 import { useForm } from "react-hook-form";
 import { Link, useNavigate } from "react-router-dom";
 import { Visibility, VisibilityOff } from "@mui/icons-material";
+import { api, scheduleTokenRefresh } from "services/axiosInstance";
 import { useAuth } from "context/AuthContext";
+import { setAccessToken, setRefreshToken } from "../../../services/auth";
 
 const Login = () => {
   const [openSnackbar, setOpenSnackbar] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [rememberMe, setRememberMe] = useState(false);
-  
+
   // Email Validation
   const [signInEmail, setSignInEmail] = useState("");
 
@@ -37,10 +38,8 @@ const Login = () => {
 
   /////////////////////////////////////////////////
 
-
   const { register, handleSubmit } = useForm();
   const navigate = useNavigate();
-  const { login } = useAuth(); // Get login function from AuthContext
 
   // Function to handle closing the Snackbar
   const handleCloseSnackbar = () => {
@@ -48,7 +47,7 @@ const Login = () => {
     setErrorMessage(""); // Clear the error message after closing
   };
 
-  // Login API call
+  const { login } = useAuth();
   const onSubmit2 = async (data) => {
     const LoginData = {
       EmailOrUsername: data.signInEmail,
@@ -58,38 +57,40 @@ const Login = () => {
     console.log("LoginData being sent:", LoginData);
 
     try {
-      const response = await axios.post(
-        "https://careerguidance.runasp.net/Auth/Login",
-        LoginData,
-        { headers: { "Content-Type": "application/json" } }
-      );
+      const response = await api.post("/Auth/Login", LoginData);
 
-      const { role, token: accessToken, refreshToken, ...otherData } = response.data;
+      const {
+        role,
+        token: accessToken,
+        refreshToken,
+        expiresIn,
+        ...otherData
+      } = response.data;
 
-      // Store user data and tokens using AuthContext's login function
-      login({ role, ...otherData }, accessToken, refreshToken);
+      setAccessToken(accessToken);
+      setRefreshToken(refreshToken);
+
+      // Store user data in context only
+      login({ role, ...otherData });
+
+      // Schedule the token refresh
+      scheduleTokenRefresh(expiresIn); // ← جدولة تجديد التوكن تلقائيًا
 
       // Navigate based on role
-      if (role === "admin" || role === "Admin") {
-        navigate("/dashboard"); // Navigate to admin dashboard
-      } else if (role === "Student") {
-        navigate("/"); // Navigate to user dashboard
+      const userRole = role.toLowerCase();
+      if (userRole === "admin") {
+        navigate("/dashboard");
+      } else if (userRole === "student") {
+        navigate("/");
       } else {
-        navigate("/"); // Default navigation if role does not match
+        navigate("/");
       }
 
       console.log("Login successful:", response.data);
-      window.location.reload(); // Consider removing if not necessary
-
     } catch (error) {
       console.log("Error during API call:", error);
 
-      // Handle specific error codes for better feedback
-      if (
-        (error.response && error.response.status === 400) ||
-        (error.response && error.response.status === 409) ||
-        (error.response && error.response.status === 401)
-      ) {
+      if (error.response && [400, 401, 409].includes(error.response.status)) {
         const errorMessage =
           error.response.data.errors?.[1] || "Invalid Email or Password.";
         setErrorMessage(errorMessage);
@@ -97,7 +98,7 @@ const Login = () => {
         setErrorMessage("An unexpected error occurred.");
       }
 
-      setOpenSnackbar(true); // Show the Snackbar
+      setOpenSnackbar(true);
     }
   };
 
@@ -116,7 +117,7 @@ const Login = () => {
         justifyContent: "center",
         width: "100%",
         px: 4,
-        backgroundColor:theme.palette.background.paper ,       
+        backgroundColor: theme.palette.background.paper,
       }}
     >
       <Typography
@@ -127,7 +128,7 @@ const Login = () => {
           textShadow: "1px 1px 1px #b5adad",
         }}
       >
-        Sign In{" "}
+        Login{" "}
       </Typography>
       <Box
         style={{
@@ -285,32 +286,30 @@ const Login = () => {
           }}
         >
           {/* Remember Me Checkbox */}
-          <Box display="flex" alignItems="center" mt={1}>
-            {" "}
-            {/* Aligns the checkbox and label */}
-            <FormControlLabel
-              control={
-                <Checkbox
-                  checked={rememberMe}
-                  onChange={(e) => setRememberMe(e.target.checked)}
-                  sx={{
-                    transform: "scale(0.8)", // Adjust checkbox size
-                    "&.Mui-checked": {
-                      color: "#ee6c4d",
-                    },
-                  }}
-                />
-              }
-              label="Remember Me"
-              sx={{
-                "& .MuiFormControlLabel-label": {
-                  fontSize: "13px", // Set font size for the label
-                  color: theme.palette.text.primary, // Set label color
-                  fontWeight: "bold",
-                },
-              }}
-            />
-          </Box>
+          <FormControlLabel
+            control={
+              <Checkbox
+                checked={rememberMe}
+                onChange={(e) => setRememberMe(e.target.checked)}
+                sx={(theme) => ({
+                  transform: "scale(0.8)", 
+                  color: theme.palette.text.primary, // border color
+                  "&.Mui-checked": {
+                    color: "#ee6c4d", // checked state color
+                  },
+                  
+                })}
+              />
+            }
+            label="Remember Me"
+            sx={{
+              "& .MuiFormControlLabel-label": {
+                fontSize: "13px",
+                color: theme.palette.text.primary,
+                fontWeight: "bold",
+              },
+            }}
+          />
 
           {/* Forget Your Password Link */}
           <Link
@@ -342,7 +341,7 @@ const Login = () => {
             borderRadius: "8px",
           }}
         >
-          Sign In
+          Login
         </Button>
         <Snackbar
           open={openSnackbar}

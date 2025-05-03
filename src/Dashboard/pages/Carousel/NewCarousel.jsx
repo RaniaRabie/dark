@@ -31,7 +31,7 @@ import {
 } from "@mui/material";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import axios from "axios";
-import { useAuth } from "context/AuthContext";
+import { api } from "../../../services/axiosInstance";
 
 const buttonStyle ={
     width: "180px",
@@ -75,21 +75,19 @@ export default function NewCarousel() {
   const [openSnackbar, setOpenSnackbar] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
 
-  const { token } = useAuth();
-
+  // const api = useAxios();
   useEffect(() => {
-    // Fetch Carousel Sections from the server
-    axios
-      .get(
-        "https://careerguidance.runasp.net/api/Dashboard/GetAllCarouselSection"
-      )
-      .then((response) => {
-        // console.log("🎯 Carousel Sections fetched:", response.data); 
-        setCreatedCarouselSections(response.data); // Store fetched categories in state
-      })
-      .catch((error) => {
+    const fetchCarouselSections = async () => {
+      try {
+        const response = await api.get("/api/Dashboard/GetAllCarouselSection");
+         // console.log("🎯 Carousel Sections fetched:", response.data); 
+        setCreatedCarouselSections(response.data);
+      } catch (error) {
         console.error("❌ Error fetching Carousel Sections:", error);
-      });
+      }
+    };
+  
+    fetchCarouselSections();
   }, []);
 
   const updateCarousel = async () => {
@@ -111,15 +109,9 @@ export default function NewCarousel() {
       // console.log("Sending data:", updatedCarouselData)
 
       // Make the PUT request with data
-      await axios.put(
-        `https://careerguidance.runasp.net/api/Dashboard/UpdateDetailsCarouselSection/${id}`,
+      await api.put(
+        `/api/Dashboard/UpdateDetailsCarouselSection/${id}`,
         updatedCarouselData,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-        }
       );
 
       // console.log("Carousel updated successfully.");
@@ -189,15 +181,9 @@ export default function NewCarousel() {
 
       // console.log("🚀 Request body being sent to backend:", requestBody);
       try {
-        await axios.post(
-          "https://careerguidance.runasp.net/api/Dashboard/AddDetailsCarouselSection",
+        await api.post(
+          "/api/Dashboard/AddDetailsCarouselSection",
           requestBody,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-              "Content-Type": "application/json",
-            },
-          }
         );
         navigate("/dashboard/allCarousel")
       } catch (error) {

@@ -44,7 +44,7 @@ export default function DashboardOutlet() {
   }, [mode]);
 
   return (
-    <Box sx={{ display: { xs: "block", lg: "flex" } }}>
+    <Box>
       <ThemeProvider theme={theme}>
         <CssBaseline />
 
@@ -55,11 +55,7 @@ export default function DashboardOutlet() {
 
         <Box
           component="main"
-          sx={{
-            flexGrow: { xs: 0, lg: 1 },
-            mt: { lg: "45px" },
-            ml: { xs: "45px", lg: "0px" },
-          }}
+          sx={{mt: "50px",}}
         >
           <Outlet />
         </Box>
